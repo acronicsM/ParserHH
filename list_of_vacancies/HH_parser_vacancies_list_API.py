@@ -18,12 +18,16 @@ class Vacancy:
                  'experience',
                  'employment',
                  'description',
-                 'key_skills',
+                 'key_skills',  # cкилы из тега key_skills
+                 'description_skills',   # cкилы из тега description
+                 'basic_skills',  # основные скилы вакансии
                  'schedule')
 
     def __init__(self, vac_id: int, name: str):
         self.vac_id, self.name = vac_id, name
-        self.key_skills = []
+        self.key_skills = set()
+        self.basic_skills = set()
+        self.description_skills = set()
         self.description = ''
 
 

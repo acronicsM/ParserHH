@@ -7,6 +7,7 @@ import json
 import pickle
 from bs4 import BeautifulSoup
 import os
+import re
 
 
 def filling_vacancies(vacancies: list[Vacancy], header: dict = None, dump_folder: str = '.', do_dump: bool = True):
@@ -48,15 +49,43 @@ def filling_vacancies_class(vacancies: list[Vacancy], folder: str = '.'):
         vac.schedule = vac_data['schedule']['name']
         vac.description = vac_data['description']
         if vac_data['key_skills']:
-            vac.key_skills = [i['name'] for i in vac_data['key_skills']]
+            vac.key_skills = {i['name'] for i in vac_data['key_skills']}
 
 
 def parser_description_to_key_skills(vacancies: list[Vacancy]):
+    pattern = r'[a-zA-Z]{1,}[ -]?[a-zA-Z]{1,}'
+
     for vac in vacancies:
-        soup = BeautifulSoup(vac.description, "html.parser")
-        soup.text
+        soup = BeautifulSoup(vac.description, 'html.parser')
+        for ul in soup.findAll('ul'):
+            name = ul.find_previous('p')
+            if name is None:
+                name = ul.find_previous('strong')
+
+            skills_text = ''
+            for child in ul.findChildren('li', recursive=False):
+                for match in re.finditer(pattern, child.text, re.MULTILINE):
+                    vac.description_skills.add(match.group())
+                    skills_text += ' ' + match.group()
+
+            if skills_text:
+                print(f'{vac.vac_id} - {name} ++++ {skills_text}')
 
 
+'''
+Мы хотели бы, чтобы вы
+Чем предстоит заниматься
+Обязанности
+Требования
+Наши ожидания
+Мы ожидаем
+Что нам важно
+Hard skills
+Чего мы ждем
+Что нужно знать
+Что нужно от тебя
+Ожидаем
+'''
 
 if __name__ == '__main__':
 
@@ -70,8 +99,6 @@ if __name__ == '__main__':
 
     # vacs = hh_list_parser_and_dump(folder=folder, pattern=pattern, filename=filename)
     #
-    # filling_vacancies(vacancies=vacs, dump_folder=folder)
-
     # vacs = load_vacancies_class(filename=filename, folder=folder)
     # filling_vacancies_class(vacancies=vacs, folder=folder)
     # dump_vacancys_list(vacancies=vacs, folder=folder, filename=filename)
