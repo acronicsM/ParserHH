@@ -16,21 +16,26 @@ class Vacancy:
                  'requirement',
                  'responsibility',
                  'experience',
-                 'employment')
+                 'employment',
+                 'description',
+                 'key_skills',
+                 'schedule')
 
     def __init__(self, vac_id: int, name: str):
         self.vac_id, self.name = vac_id, name
+        self.key_skills = []
+        self.description = ''
 
 
 def hh_list_parser_and_dump(folder: str, pattern: str, filename: str) -> list:
-    vacancys = []
+    vacancies = []
 
     for f in os.listdir(folder):
         full_path = folder + '/' + f
         if not os.path.isfile(full_path) or re.fullmatch(pattern, f) is None:
             continue
 
-        with (open(full_path, 'r') as fp):
+        with open(full_path, 'r') as fp:
             for i in json.load(fp):
                 new_vac = Vacancy(i['id'], i['name'])
                 new_vac.salary_from = i['salary']['from'] if i['salary'] else None
@@ -43,9 +48,13 @@ def hh_list_parser_and_dump(folder: str, pattern: str, filename: str) -> list:
                 new_vac.experience = i['experience']['name']
                 new_vac.employment = i['employment']['name']
 
-                vacancys.append(new_vac)
+                vacancies.append(new_vac)
 
+    dump_vacancys_list(vacancies=vacancies, folder=folder, filename=filename)
+
+    return vacancies
+
+
+def dump_vacancys_list(vacancies: list[Vacancy], folder: str, filename: str):
     with open(fr'{folder}\{filename}.bin', 'wb') as fp:
-        pickle.dump(vacancys, fp)
-
-    return vacancys
+        pickle.dump(vacancies, fp)
