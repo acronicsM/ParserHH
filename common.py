@@ -3,9 +3,8 @@ import pickle
 from pathlib import Path
 
 import requests
-from requests.compat import urljoin
 
-from environment import VACANCY_FOLDER, BASE_URI, HEADER
+from environment import VACANCY_FOLDER, BASE_URI, HEADER, DUMPS_FOLDER
 
 
 class Vacancy:
@@ -28,6 +27,12 @@ class Vacancy:
 
     def __init__(self, vac_id: int, name: str, raw_json: str = None):
         self.vac_id, self.name = vac_id, name
+        self.salary_from = self.salary_to = 0
+        self.type = self.requirement = self.responsibility = self.experience = self.employment = self.description = ''
+        self.key_skills = self.description_skills = self.basic_skills = set()
+        self.schedule = ''
+        self.published_at = None
+        self.archived = False
 
         if raw_json:
             self.__parser_raw_json(raw_json)
@@ -53,7 +58,7 @@ def get_json_data(params: dict = None, header: dict = None, uri: str = None):
     if not header:
         header = HEADER
 
-    return requests.get(url=urljoin(BASE_URI, uri), params=params, headers=header).json()
+    return requests.get(url=(BASE_URI + f'/{uri}/') if uri else BASE_URI, params=params, headers=header).json()
 
 
 def save_vacancy(vacancy):
@@ -61,3 +66,17 @@ def save_vacancy(vacancy):
 
     with open(fr'{VACANCY_FOLDER}\{vacancy.vac_id}.bin', 'wb') as fp:
         pickle.dump(vacancy, fp)
+
+
+def get_vacancies_file():
+    return Path(VACANCY_FOLDER).glob('[0-9]*.bin')
+
+
+def get_vacancy_obj(path: str) -> Vacancy|None:
+    with open(path, 'rb') as fp:
+        return pickle.load(fp)
+
+
+def get_dump_files(pattern: str):
+    return Path(DUMPS_FOLDER).glob(pattern)
+
