@@ -1,4 +1,5 @@
-from HH_api.parse_vacancies_list import load_vacancies
+from parse_vacancies_list import load_vacancies
+
 
 
 if __name__ == '__main__':
