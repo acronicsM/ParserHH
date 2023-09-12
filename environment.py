@@ -5,11 +5,11 @@ HEADER = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/5
                                 'Chrome/116.0.0.0 Safari/537.36 OPR/102.0.0.0 (Edition Yx 05)'}
 
 
-Page_FILENAME = 'hh_page_'
+PAGE_FILENAME = 'hh_page_'
 DETAIL_FILENAME = 'hh_detail_'
 
 DUMPS_FOLDER = r'dumps'
-VACANCY_FOLDER = r'vacancy'
+VACANCY_FOLDER = r'vacancy_data'
 
 BASE_URI = 'https://api.hh.ru/vacancies'
 
