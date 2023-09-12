@@ -64,6 +64,7 @@ def get_detail_vacancy(vac_id: int, folder: str = None, do_dump: bool = None, fr
 def get_detail_data_from_dump(vac_id: int, folder: str):
     path = fr'{folder}\{DETAIL_FILENAME}{vac_id}.json'
     if not Path(path).exists():
+
         return
 
     with open(path, 'r') as fp:

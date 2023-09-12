@@ -2,6 +2,7 @@ from datetime import datetime
 import pickle
 from pathlib import Path
 
+
 import requests
 
 from environment import VACANCY_FOLDER, BASE_URI, HEADER, DUMPS_FOLDER

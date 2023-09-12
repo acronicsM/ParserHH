@@ -48,6 +48,7 @@ def load_vacancies(query_vac: str,
     if from_dump:
         return get_page_data_from_dump()
 
+
     vacancies_processed, total_vacancies, page = 0, 1, 0
     while vacancies_processed < total_vacancies:
         if logging:

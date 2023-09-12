@@ -1,6 +1,7 @@
 from parse_vacancies_list import load_vacancies
 
 
+
 if __name__ == '__main__':
 
     query = 'Python junior'
