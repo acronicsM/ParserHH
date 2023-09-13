@@ -1,10 +1,7 @@
-from datetime import datetime
+from datetime import datetime, timedelta
 import pickle
 from pathlib import Path
-
-
 import requests
-
 from environment import VACANCY_FOLDER, BASE_URI, HEADER, DUMPS_FOLDER
 
 
@@ -26,6 +23,7 @@ class Vacancy:
                  'schedule',
                  'need_update',
                  'relevance_date',
+                 'currency',
                  )
 
     def __init__(self, vac_id: int, name: str, raw_json: str = None):
@@ -45,14 +43,16 @@ class Vacancy:
         published_at = raw_json['published_at']
         published_at = published_at[:published_at.find('+')]
 
-        self.salary_from = raw_json['salary']['from'] if raw_json['salary'] else None
-        self.salary_to = raw_json['salary']['to'] if raw_json['salary'] else None
         self.type = raw_json['type']['name']
         self.published_at = datetime.fromisoformat(published_at)
         self.requirement = raw_json['snippet']['requirement']
         self.responsibility = raw_json['snippet']['responsibility']
         self.experience = raw_json['experience']['name']
         self.employment = raw_json['employment']['name']
+        self.currency = raw_json['salary']['currency']
+
+        self.salary_from = raw_json['salary']['from'] if raw_json['salary'] else None
+        self.salary_to = raw_json['salary']['to'] if raw_json['salary'] else None
 
     def save(self):
         exists_and_makedir(VACANCY_FOLDER)
@@ -77,7 +77,7 @@ def get_vacancies_file():
     return Path(VACANCY_FOLDER).glob('[0-9]*.bin')
 
 
-def get_vacancy_obj(path: str) -> Vacancy|None:
+def get_vacancy_obj(path: str) -> Vacancy | None:
     with open(path, 'rb') as fp:
         return pickle.load(fp)
 
@@ -103,6 +103,7 @@ def save_vacancy_from_json(data_json: dict):
         for path in Path(VACANCY_FOLDER).glob(f'{vac_id}.bin'):
             vacancy = get_vacancy_obj(path)
             vacancy.relevance_date = datetime.now()
+            vacancy.need_update = False
 
         if vacancy is None:
             vacancy = Vacancy(vac_id=vac_id, name=v['name'], raw_json=v)
@@ -117,3 +118,19 @@ def update_detail_vacancy(vacancy: Vacancy, detail_data: dict):
     vacancy.description_skills = detail_data['description_skills']
     vacancy.basic_skills = detail_data['basic_skills']
     vacancy.basic_skills = detail_data['need_update']
+
+
+def get_all_vacancies():
+    return [get_vacancy_obj(path) for path in get_vacancies_file()]
+
+
+def delete_expired_vacancies(logging: bool = False):
+    now_minus_1 = datetime.now() - timedelta(days=1)
+
+    for vacancy in get_all_vacancies():
+        if vacancy.relevance_date < now_minus_1:
+            file = Path(fr'{VACANCY_FOLDER}\{vacancy.vac_id}.bin')
+            file.unlink()
+
+            if logging:
+                print(f'Удалена вакансия {vacancy.vac_id}')

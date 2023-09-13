@@ -40,6 +40,9 @@ def pages_loader(query_vac: str, per_page: int = 100, logging: bool = False, do_
         vacancies_processed += _vacancies_processed
         page += 1
 
+    if logging:
+        print(f'Получено {vacancies_processed} вакансия из {total_vacancies}')
+
     return vacancies_processed, total_vacancies
 
 
@@ -56,7 +59,9 @@ def load_detail(vac_id: int, do_dump: bool):
 
 def update_detail(vacancies: list[Vacancy], do_dump: bool = False, logging: bool = False):
     counter = 0
-    timeout = 10
+    timeout = 5
+    delta = 5
+    package = 5
     for vacancy in vacancies:
         counter += 1
 
@@ -74,9 +79,9 @@ def update_detail(vacancies: list[Vacancy], do_dump: bool = False, logging: bool
 
         vacancy.save()
 
-        if counter % 3 == 0:
+        if counter % package == 0:
             time.sleep(timeout)
-            timeout += 10
+            timeout += delta
             if logging:
                 print(f'Таймаут {timeout}')
 

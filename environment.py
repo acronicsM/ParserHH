@@ -31,3 +31,11 @@ REQUIRED_SKILLS = [
     'Что нужно от тебя',
     'Ожидаем',
 ]
+
+CURRENCY_CLASSIFIER = {
+    'RUB': 643,
+    'USD': 840,
+    'EUR': 978,
+    'KZT': 398,
+    'BYN': 933,
+}
