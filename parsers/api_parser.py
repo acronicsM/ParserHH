@@ -8,7 +8,8 @@ import re
 def parser_description_to_key_skills(description: str):
     pattern = r'[a-zA-Z]{1,}[ -]?[a-zA-Z]{1,}'
 
-    description_skills = basic_skills = set()
+    description_skills = set()
+    basic_skills = set()
 
     soup = BeautifulSoup(description, 'html.parser')
     for ul in soup.findAll('ul'):
@@ -16,11 +17,13 @@ def parser_description_to_key_skills(description: str):
         if name is None:
             name = ul.find_previous('strong')
 
+        name = name.text
+
         for child in ul.findChildren('li', recursive=False):
             for match in re.finditer(pattern, child.text, re.MULTILINE):
                 skill = match.group()
                 description_skills.add(skill)
-                if name in REQUIRED_SKILLS:
+                if any((name.lower() in i.lower()) or (i.lower() in name.lower()) for i in REQUIRED_SKILLS):
                     basic_skills.add(skill)
 
     return description_skills, basic_skills

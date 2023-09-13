@@ -3,11 +3,12 @@ import json
 from environment import DUMPS_FOLDER, PAGE_FILENAME, HEADER, DETAIL_FILENAME
 from common import Vacancy, exists_and_makedir, get_json_data, save_vacancy_from_json, update_detail_vacancy
 from parsers.api_parser import parse_detail_data
+from parsers.currency_exchange_rate_parser import current_course
 
 
-def load_page(query_vac: str, do_dump: bool, per_page: int = 100, page: int = 0) -> tuple[int, int]:
+def load_page(query: str, do_dump: bool, per_page: int = 100, page: int = 0, courses=None) -> tuple[int, int]:
     params = {
-        'text': query_vac,
+        'text': query,
         'per_page': per_page,
         'search_field': 'name',
         'page': page,
@@ -20,21 +21,27 @@ def load_page(query_vac: str, do_dump: bool, per_page: int = 100, page: int = 0)
         with open(fr'{DUMPS_FOLDER}\{PAGE_FILENAME}{page}.json', 'w') as fp:
             json.dump(data_json, fp)
 
-    save_vacancy_from_json(data_json)
+    save_vacancy_from_json(data_json, courses)
 
     return data_json['found'], len(data_json['items'])
 
 
 def pages_loader(query_vac: str, per_page: int = 100, logging: bool = False, do_dump: bool = False):
-    vacancies_processed, total_vacancies, page = 0, 1, 0
+
+    courses = current_course()
+    vacancies_processed = 0
+    total_vacancies = 1
+    page = 0
+
     while vacancies_processed < total_vacancies:
         if logging:
             print(f'Парсинг страницы {page}')
 
-        _total_vacancies, _vacancies_processed = load_page(query_vac=query_vac,
+        _total_vacancies, _vacancies_processed = load_page(query=query_vac,
                                                            per_page=per_page,
                                                            page=page,
                                                            do_dump=do_dump,
+                                                           courses=courses
                                                            )
         total_vacancies = _total_vacancies
         vacancies_processed += _vacancies_processed
@@ -60,7 +67,7 @@ def load_detail(vac_id: int, do_dump: bool):
 def update_detail(vacancies: list[Vacancy], do_dump: bool = False, logging: bool = False):
     counter = 0
     timeout = 5
-    delta = 5
+    delta = 2
     package = 5
     for vacancy in vacancies:
         counter += 1
