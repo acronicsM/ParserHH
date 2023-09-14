@@ -1,50 +1,52 @@
 from common import get_all_vacancies, Vacancy
+import matplotlib.pyplot as plt
 import seaborn as sns
+import pandas as pd
 
 
+def add_skills_to_dict(vacancy: Vacancy, skills_dict: list, attr_name: str, attr_index: int):
+    skill_str, salary_str = 'skills', 'salarys'
+    for i in vacancy.__getattribute__(attr_name):
+        if i not in skills_dict:
+            skills_dict[i] = {skill_str: [0, 0, 0], salary_str: []}
+            skills_dict[i][skill_str] = [0, 0, 0]
 
-def create_collect_data_skills(skills_dict: dict, skill: str, vacancy: Vacancy):
-    if skill not in skills_dict:
-        skills_dict[skill] = {'count_vacancy': 0, 'salary': set()}
-
-    skills_dict[skill]['salary'].add(vacancy.salary_from)
-    skills_dict[skill]['salary'].add(vacancy.salary_to)
-    skills_dict[skill]['salary'].add((vacancy.salary_from + vacancy.salary_to) / 2)
-
-    skills_dict[skill]['count_vacancy'] += 1
-
-
-def print_collect_data_skills(skills_dict: dict):
-    for skill, v in skills_dict.items():
-        min_salary, max_salary = min(v['salary']), max(v['salary'])
-        average_salary = (min_salary + max_salary) / 2
-        print(f'{skill}: {min_salary:_} {average_salary:_} {max_salary:_}')
+        skills_dict[i][skill_str][attr_index] += 1
+        skills_dict[i][salary_str].append(vacancy.salary_to)
+        skills_dict[i][salary_str].append(vacancy.salary_from)
 
 
-def collect_data_skills(vacs: list[Vacancy]):
-    key = dict()
-    description = dict()
-    basic = dict()
+def create_dataframe_from_vacancy():
+    glossary = ('key_skills', 'description_skills', 'basic_skills')
+    skills = dict()
+    for vacancy in get_all_vacancies():
+        for k, v in enumerate(glossary):
+            add_skills_to_dict(vacancy, skills, v, k)
 
-    for vacancy in vacs:
-        for skill in vacancy.key_skills:
-            create_collect_data_skills(key, skill, vacancy)
+    skills_list = [(skill, *value['skills']) for skill, value in skills.items()]
+    salarys_list = [(skill, v) for skill, value in skills.items() for v in value['salarys']]
 
-        for skill in vacancy.description_skills:
-            create_collect_data_skills(description, skill, vacancy)
+    df_skills = pd.DataFrame(skills_list, columns=['skill', *glossary])
+    df_salarys = pd.DataFrame(salarys_list, columns=['skill', 'salary'])
 
-        for skill in vacancy.basic_skills:
-            create_collect_data_skills(basic, skill, vacancy)
+    print(df_skills.head())
+    print(df_salarys.head())
 
-    return key, description, basic
+
+    # sns.barplot(data=df, x='c1', y='c2')
+    # plt.show()
+    # return df_skills, df_salary
+
 
 
 if __name__ == '__main__':
 
-    vacancies = get_all_vacancies()
+    # vacancies = get_all_vacancies()
+    #
+    # key_skills, description_skills, basic_skills = collect_data_skills(vacancies)
+    #
+    # print(f'Всего вакансий: {len(vacancies)}')
+    #
+    # print_collect_data_skills(basic_skills)
 
-    key_skills, description_skills, basic_skills = collect_data_skills(vacancies)
-
-    print(f'Всего вакансий: {len(vacancies)}')
-
-    print_collect_data_skills(basic_skills)
+    create_dataframe_from_vacancy()
