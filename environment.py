@@ -11,6 +11,8 @@ DETAIL_FILENAME = 'hh_detail_'
 DUMPS_FOLDER = r'dumps'
 VACANCY_FOLDER = r'vacancy_data'
 
+IMAGE_FOLDER = r'images'
+
 BASE_URI = 'https://api.hh.ru/vacancies'
 
 PATTERN = 'hh[0-9]*.json'
@@ -41,3 +43,6 @@ CURRENCY_CLASSIFIER = {
     'KZT': 398,
     'BYN': 933,
 }
+
+
+GLOSSARY =('key_skills', 'description_skills', 'basic_skills')

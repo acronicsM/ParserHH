@@ -13,7 +13,7 @@ def current_course():
         else:
             data_course = response.text
             data_course = data_course[data_course.rfind('\n'):].split('\t')
-            courses[currency] = float(data_course[-1])
+            courses[currency] = float(data_course[2]) / float(data_course[1])
 
     return courses
 
