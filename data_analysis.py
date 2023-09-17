@@ -1,5 +1,5 @@
-from common import get_all_vacancies, Vacancy, exists_and_makedir
-from environment import IMAGE_FOLDER, GLOSSARY
+from HH_parser.common import get_all_vacancies, Vacancy, exists_and_makedir
+from HH_parser.environment import IMAGE_FOLDER, GLOSSARY
 import matplotlib.pyplot as plt
 import seaborn as sns
 import pandas as pd
@@ -45,13 +45,17 @@ def get_dataframe_from_vacancy():
 def save_images_skills(df_skills, nlargest=20):
     plt.figure(figsize=(20, 15), dpi=200)
 
+    images = []
+
     exists_and_makedir(IMAGE_FOLDER)
     nlargest = 20
     for g in GLOSSARY:
+        filename = fr'{IMAGE_FOLDER}\{g}_{nlargest}.jpg'
         plt.xticks(rotation=45)
         sns.barplot(data=df_skills.nlargest(nlargest, g), x='skill', y=g)
-        plt.savefig(fr'{IMAGE_FOLDER}\{g}_{nlargest}.jpg')
+        plt.savefig(filename)
         plt.cla()
+        images.append(filename)
 
 
 def save_images_salary(df_skills, df_salarys, nlargest=20):
@@ -62,18 +66,29 @@ def save_images_salary(df_skills, df_salarys, nlargest=20):
 
     exists_and_makedir(IMAGE_FOLDER)
 
+    filename = fr'{IMAGE_FOLDER}\salary_{nlargest}.jpg'
+
     plt.figure(figsize=(20, 15), dpi=200)
     plt.xticks(rotation=45)
     sns.barplot(data=df1.nlargest(nlargest, 'salary'), x='skill', y='salary')
-    plt.savefig(fr'{IMAGE_FOLDER}\salary_{nlargest}.jpg')
+    plt.savefig(filename)
+
+    return [filename]
 
 
 def save_images():
 
+    images = {'skills': [], 'salarys': []}
+
     df_skills, df_salarys = get_dataframe_from_vacancy()
 
-    save_images_skills(df_skills)
-    save_images_salary(df_skills, df_salarys)
+    skills_images = save_images_skills(df_skills)
+    salarys_images = save_images_salary(df_skills, df_salarys)
+
+    images['skills'] = skills_images
+    images['salarys'] = salarys_images
+
+    return images
 
 
 if __name__ == '__main__':
