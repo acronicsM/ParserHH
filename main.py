@@ -15,5 +15,3 @@ if __name__ == '__main__':
     update_detail(vacancies=get_vacancy_for_update_bin(), logging=True, do_dump=True)
 
     save_images()
-
-

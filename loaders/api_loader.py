@@ -1,7 +1,8 @@
 import time
 import json
 from environment import DUMPS_FOLDER, PAGE_FILENAME, HEADER, DETAIL_FILENAME
-from common import Vacancy, exists_and_makedir, get_json_data, save_vacancy_from_json, update_detail_vacancy
+from common import Vacancy, exists_and_makedir, get_json_data, save_vacancy_from_json, update_detail_vacancy, \
+    delete_expired_vacancies, get_vacancy_for_update_bin
 from parsers.api_parser import parse_detail_data
 from parsers.currency_exchange_rate_parser import current_course
 
@@ -91,4 +92,12 @@ def update_detail(vacancies: list[Vacancy], do_dump: bool = False, logging: bool
             timeout += delta
             if logging:
                 print(f'Таймаут {timeout}')
+
+
+def update_vacancy(query, do_dump: bool = False, logging: bool = False):
+    pages_loader(query_vac=query, logging=logging, do_dump=do_dump)
+
+    delete_expired_vacancies(logging=logging)
+
+    update_detail(vacancies=get_vacancy_for_update_bin(), logging=logging, do_dump=do_dump)
 
