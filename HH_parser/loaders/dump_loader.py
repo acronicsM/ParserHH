@@ -1,7 +1,7 @@
 import json
-from common import get_dump_files, save_vacancy_from_json, Vacancy, update_detail_vacancy
-from environment import PAGE_FILENAME, DETAIL_FILENAME
-from parsers.api_parser import parse_detail_data
+from HH_parser.common import get_dump_files, save_vacancy_from_json, Vacancy, update_detail_vacancy
+from HH_parser.environment import PAGE_FILENAME, DETAIL_FILENAME
+from HH_parser.parsers.api_parser import parse_detail_data
 
 
 def pages_loader():

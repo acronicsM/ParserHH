@@ -1,4 +1,4 @@
-from environment import CURRENCY_CLASSIFIER, HEADER
+from HH_parser.environment import CURRENCY_CLASSIFIER, HEADER
 import requests
 
 

@@ -1,5 +1,4 @@
-from common import Vacancy
-from environment import REQUIRED_SKILLS
+from HH_parser.environment import REQUIRED_SKILLS
 
 from bs4 import BeautifulSoup
 import re
