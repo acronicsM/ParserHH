@@ -9,9 +9,15 @@ from loaders.api_loader import update_vacancy
 from data_analysis import save_images
 
 app = Flask(__name__)
-app.config['SQLALCHEMY_DATABASE_URI'] = "postgresql://postgre:postgre@localhost/hh"
+app.config['SQLALCHEMY_DATABASE_URI'] = "postgresql://postgres:adminadmin@localhost:5432/hh"
+# app.config['SQLALCHEMY_DATABASE_URI'] = "sqlite:///base1.db"
 
 db = SQLAlchemy(app)
+
+
+# def get_engine(user, password, host, port, db):
+#     url = f'postgresql://{user}:{password}@{port}/{db}'
+#     if not SQLAlchemy.da
 
 
 class Query(db.Model):
@@ -76,7 +82,7 @@ def get_update_vacancy():
         logging = _logging
 
     if query := request.args.get('query'):
-        update_vacancy(query=query, do_dump=do_dump, logging=logging)
+        update_vacancy(app, query=query, do_dump=do_dump, logging=logging)
     else:
         return 'no key "query"', 400
 
@@ -99,7 +105,6 @@ def get_all_vacancy():
 
     return result
 
-# 5432 adminadmin
 @app.route('/get_vacancy/<int:vacancy_id>')
 def get_vacancy(vacancy_id):
     # /get_vacancy/123456
@@ -113,5 +118,6 @@ def get_images():
 
 
 if __name__ == '__main__':
-    db.create_all()
+    # with app.app_context():
+    #     db.create_all()
     app.run(debug=True)

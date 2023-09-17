@@ -2,12 +2,12 @@ import time
 import json
 from environment import DUMPS_FOLDER, PAGE_FILENAME, HEADER, DETAIL_FILENAME
 from common import Vacancy, exists_and_makedir, get_json_data, save_vacancy_from_json, update_detail_vacancy, \
-    delete_expired_vacancies, get_vacancy_for_update_bin
+    delete_expired_vacancies, get_vacancy_for_update_bin, save_vacancy_from_db
 from parsers.api_parser import parse_detail_data
 from parsers.currency_exchange_rate_parser import current_course
 
 
-def load_page(query: str, do_dump: bool, per_page: int = 100, page: int = 0, courses=None) -> tuple[int, int]:
+def load_page(app, query: str, do_dump: bool, per_page: int = 100, page: int = 0, courses=None) -> tuple[int, int]:
     params = {
         'text': query,
         'per_page': per_page,
@@ -22,12 +22,15 @@ def load_page(query: str, do_dump: bool, per_page: int = 100, page: int = 0, cou
         with open(fr'{DUMPS_FOLDER}\{PAGE_FILENAME}{page}.json', 'w') as fp:
             json.dump(data_json, fp)
 
-    save_vacancy_from_json(data_json, courses)
+    if app:
+        save_vacancy_from_db(app, data_json, courses)
+    else:
+        save_vacancy_from_json(data_json, courses)
 
     return data_json['found'], len(data_json['items'])
 
 
-def pages_loader(query_vac: str, per_page: int = 100, logging: bool = False, do_dump: bool = False):
+def pages_loader(app, query_vac: str, per_page: int = 100, logging: bool = False, do_dump: bool = False):
 
     courses = current_course()
     vacancies_processed = 0
@@ -38,7 +41,8 @@ def pages_loader(query_vac: str, per_page: int = 100, logging: bool = False, do_
         if logging:
             print(f'Парсинг страницы {page}')
 
-        _total_vacancies, _vacancies_processed = load_page(query=query_vac,
+        _total_vacancies, _vacancies_processed = load_page(app=app,
+                                                           query=query_vac,
                                                            per_page=per_page,
                                                            page=page,
                                                            do_dump=do_dump,
@@ -94,8 +98,8 @@ def update_detail(vacancies: list[Vacancy], do_dump: bool = False, logging: bool
                 print(f'Таймаут {timeout}')
 
 
-def update_vacancy(query, do_dump: bool = False, logging: bool = False):
-    pages_loader(query_vac=query, logging=logging, do_dump=do_dump)
+def update_vacancy(query, do_dump: bool = False, logging: bool = False, app=None):
+    pages_loader(query_vac=query, logging=logging, do_dump=do_dump, app=app)
 
     delete_expired_vacancies(logging=logging)
 

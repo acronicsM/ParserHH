@@ -123,6 +123,20 @@ def save_vacancy_from_json(data_json: dict, courses: dict | None = None) -> None
         vacancy.save()
 
 
+def save_vacancy_from_db(app, data_json: dict, courses: dict | None = None) -> None:
+    for v in data_json['items']:
+        vac_id = v['id']
+        vacancy = None
+        # for path in Path(VACANCY_FOLDER).glob(f'{vac_id}.bin'):
+        #     vacancy = get_vacancy_obj(path)
+        #     vacancy.relevance_date = datetime.now()
+        #
+        # if vacancy is None:
+        #     vacancy = Vacancy(vac_id=vac_id, name=v['name'], raw_json=v, courses=courses)
+        #
+        # vacancy.save()
+
+
 def update_detail_vacancy(vacancy: Vacancy, detail_data: dict):
     vacancy.schedule = detail_data['schedule']
     vacancy.description = detail_data['description']
