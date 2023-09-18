@@ -4,7 +4,6 @@ from .loaders.api_loader import update_vacancy
 from .models import Query
 
 
-
 @app.route('/')
 def home():
     return 'welcome'
@@ -21,7 +20,7 @@ def get_update_vacancy():
 
         all_query = Query.query.all()
         for query in all_query:
-            update_vacancy(query=query.name)
+            update_vacancy(query=query)
 
         if all_query:
             return 'done'
