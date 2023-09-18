@@ -69,6 +69,26 @@ class Vacancy(db.Model):
                 self.salary_from = self.salary_from * course
                 self.salary_to = self.salary_to * course
 
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'name': self.name,
+            'salary_from': self.salary_from,
+            'salary_to': self.salary_to,
+            'published_at': self.published_at,
+            'requirement': self.requirement,
+
+        }
+
+    def to_dict_detail(self):
+        data = self.to_dict()
+        data['experience'] = self.experience
+        data['employment'] = self.employment
+        data['description'] = self.description
+        data['schedule'] = self.schedule
+
+        return data
+
     def __repr__(self):
         return f'{self.id} {self.name}'
 

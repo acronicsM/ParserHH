@@ -2,7 +2,7 @@ from datetime import datetime, timedelta
 from pathlib import Path
 import requests
 from .environment import BASE_URI, HEADER
-from .models import Vacancy
+from .models import Vacancy, Skills
 from . import db
 
 
@@ -19,10 +19,29 @@ def get_json_data(params: dict = None, header: dict = None, uri: str = None):
 
 
 def get_all_vacancies(page=None, per_page=10):
-    if page:
-        return Vacancy.query.offset(page*per_page).limit(per_page).all()
-    else:
-        return Vacancy.query.all()
+    query = Vacancy.query
+
+    count = query.count()
+
+    if page is not None:
+        query = query.offset(page * per_page).limit(per_page)
+
+    return count, query.all()
+
+
+def get_vacancy_by_id(vacancy_id):
+    return db.session.get(Vacancy, vacancy_id)
+
+
+def get_all_skills(page=None, per_page=10):
+    query = Skills.query
+
+    count = query.count()
+
+    if page is not None:
+        query = query.offset(page * per_page).limit(per_page)
+
+    return count, query.all()
 
 
 def delete_expired_vacancies():
@@ -31,3 +50,6 @@ def delete_expired_vacancies():
     for vacancy in get_all_vacancies():
         if vacancy.relevance_date < now_minus_1_day:
             db.session.delete(vacancy)
+
+
+
