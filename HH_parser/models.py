@@ -1,6 +1,11 @@
 from datetime import datetime
 from . import db
 
+vacancy_query = db.Table('vacancy_query',
+                         db.Column('vacancy_id', db.Integer, db.ForeignKey('vacancy.id')),
+                         db.Column('query_id', db.Integer, db.ForeignKey('query.id'))
+                         )
+
 
 class Query(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -27,7 +32,11 @@ class Vacancy(db.Model):
     relevance_date = db.Column(db.DateTime, default=datetime.utcnow)
     currency = db.Column(db.String(3))
 
-    skills = db.relationship('Skills', backref='_vacancy', lazy=True)
+    skills = db.relationship('Skills', backref='_vacancy', lazy=True, cascade="all,delete")
+    querys = db.relationship('Query',
+                             secondary=vacancy_query,
+                             backref=db.backref('vacancies', lazy='dynamic')
+                             )
 
     def parser_raw_json(self, raw_json, courses):
         published_at = raw_json['published_at']
@@ -68,6 +77,6 @@ class Skills(db.Model):
     vacancy = db.Column(db.Integer, db.ForeignKey(Vacancy.id))
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(50), nullable=True)
-    key_skills = db.Column(db.Boolean)
-    description_skills = db.Column(db.Boolean)
-    basic_skills = db.Column(db.Boolean)
+    key_skill = db.Column(db.Boolean, nullable=True, default=False)
+    description_skill = db.Column(db.Boolean, nullable=True, default=False)
+    basic_skill = db.Column(db.Boolean, nullable=True, default=False)
