@@ -34,7 +34,7 @@ def parse_detail_data(data_json: dict):
     result = {
         'schedule': data_json['schedule']['name'],
         'description': data_json['description'],
-        'key_skills': {i['name'] for i in data_json['key_skills']}  if data_json['key_skills'] else set(),
+        'key_skills': {i['name'] for i in data_json['key_skills']} if data_json['key_skills'] else set(),
         'description_skills': description_skills,
         'basic_skills': basic_skills,
         'need_update': False

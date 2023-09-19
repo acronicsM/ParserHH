@@ -32,7 +32,7 @@ class Vacancy(db.Model):
     relevance_date = db.Column(db.DateTime, default=datetime.utcnow)
     currency = db.Column(db.String(3))
 
-    skills = db.relationship('Skills', backref='_vacancy', lazy=True, cascade="all,delete")
+    skills = db.relationship('Skills', backref='vacancy', lazy=True, cascade="all,delete")
     querys = db.relationship('Query',
                              secondary=vacancy_query,
                              backref=db.backref('vacancies', lazy='dynamic')
@@ -94,9 +94,18 @@ class Vacancy(db.Model):
 
 
 class Skills(db.Model):
-    vacancy = db.Column(db.Integer, db.ForeignKey(Vacancy.id))
+    vacancy_id = db.Column(db.Integer, db.ForeignKey(Vacancy.id))
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(50), nullable=True)
     key_skill = db.Column(db.Boolean, nullable=True, default=False)
     description_skill = db.Column(db.Boolean, nullable=True, default=False)
     basic_skill = db.Column(db.Boolean, nullable=True, default=False)
+
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'name': self.name,
+            'key': self.key_skill,
+            'description': self.description_skill,
+            'basic': self.basic_skill,
+        }
