@@ -1,7 +1,7 @@
 from . import app
 from flask import request, jsonify
 
-from .common import get_all_vacancies, get_vacancy_by_id
+from .common import *
 from .loaders.api_loader import update_vacancy
 from .models import Query
 
@@ -13,27 +13,17 @@ def home():
 
 @app.route('/update_vacancy')
 def get_update_vacancy():
-    # /update_vacancy?query='query'
-
     if query := request.args.get('query'):
-        update_vacancy(query=query)
-        return 'done'
+        return jsonify(update_vacancy(query=query))
     else:
-
-        all_query = Query.query.all()
-        for query in all_query:
-            update_vacancy(query=query)
-
-        if all_query:
-            return 'done'
+        if all_query := Query.query.all():
+            return jsonify([update_vacancy(query=query) for query in all_query])
         else:
             return 'no key "query"', 400
 
 
 @app.route('/vacancies')
 def vacancies():
-    # /get_all_vacancy?per_page=100&page=0
-
     per_page, page = 10, 0
 
     if _per_page := request.args.get('per_page'):
@@ -56,22 +46,54 @@ def get_vacancy(vacancy_id):
 
 @app.route('/get_vacancy_tags/<int:vacancy_id>')
 def get_vacancy_tags(vacancy_id):
-    return 'work get_vacancy_tags'
+    return jsonify(get_vacancy_skills(vacancy_id))
 
 
-@app.route('/get_tag_vacancies/<int:tag_id>')
-def get_tag_vacancies(tag_id):
-    return 'work get_tag_vacancies'
+@app.route('/get_tag_vacancies')
+def get_tag_vacancies():
+    if tag_name := request.args.get('tag_name'):
+        return get_skill_vacancies(tag_name)
+
+    return 'not arg "tag_name"', 400
 
 
-@app.route('/get_all_tags')
-def get_all_tags():
-    return 'work get_all_tags'
+@app.route('/tags',)
+def tags():
+
+    per_page, page = 10, 0
+
+    if _per_page := request.args.get('per_page'):
+        per_page = min(int(_per_page), per_page)
+
+    if _page := request.args.get('page'):
+        page = int(_page)
+
+    return jsonify(get_all_skills(per_page=per_page, page=page))
 
 
-@app.route('/post_new_query', methods=['POST'])
-def post_new_query():
-    return 'work post_new_query'
+@app.route('/query/<int:query_id>')
+def query_vacancy(query_id):
+    return jsonify(get_vacancy_query(query_id))
+
+
+@app.route('/query', methods=['GET', 'POST', 'DELETE'])
+def query():
+    if request.method == 'GET':
+        return jsonify(get_query())
+    elif request.method == 'POST':
+        if query_name := request.args.get('query_name'):
+            post_query(query_name)
+            return 'done'
+
+        return 'not arg "query_name"', 400
+    elif request.method == 'DELETE':
+        if query_id := request.args.get('query_id'):
+            delete_query(query_id)
+            return 'done'
+
+        return 'not arg "query_id"', 400
+
+    return 'Method Not Allowed', 405
 
 
 @app.route('/get_images')
