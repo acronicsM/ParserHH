@@ -1,11 +1,11 @@
-from HH_parser import app, db
-from HH_parser.models import Vacancy, Skills, Query
-from HH_parser.common import get_vacancy_query
+from my_api import app, db
 
 if __name__ == '__main__':
-    with app.app_context():
-        db.drop_all()
-        db.create_all()
+    # with app.app_context():
+    #     db.drop_all()
+    #     db.create_all()
+
+    pass
 
         # v = db.session.get(Vacancy, 82260854)
         # db.session.delete(v)

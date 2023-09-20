@@ -1,5 +1,5 @@
-from HH_parser.common import get_all_vacancies, Vacancy, exists_and_makedir
-from HH_parser.environment import IMAGE_FOLDER, GLOSSARY
+from common import get_all_vacancies, Vacancy, exists_and_makedir
+from config import IMAGE_FOLDER, GLOSSARY
 import matplotlib.pyplot as plt
 import seaborn as sns
 import pandas as pd

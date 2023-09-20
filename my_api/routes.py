@@ -1,6 +1,5 @@
-from . import app
 from flask import request, jsonify
-
+from . import app
 from .common import *
 from .loaders.api_loader import update_vacancy
 from .models import Query

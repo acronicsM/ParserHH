@@ -1,7 +1,6 @@
-from HH_parser.environment import REQUIRED_SKILLS
-
 from bs4 import BeautifulSoup
 import re
+from config import REQUIRED_SKILLS
 
 
 def parser_description_to_key_skills(description: str):

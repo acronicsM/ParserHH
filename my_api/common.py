@@ -1,10 +1,10 @@
 from datetime import datetime, timedelta
 from pathlib import Path
 import requests
-from .environment import BASE_URI, HEADER
+from sqlalchemy import func, INT, desc
+from config import BASE_URI, HEADER
 from .models import Vacancy, Skills, Query
 from . import db
-from sqlalchemy import func, INT, desc
 
 
 def exists_and_makedir(path: str):
