@@ -1,5 +1,5 @@
-from HH_parser.environment import CURRENCY_CLASSIFIER, HEADER
 import requests
+from config import CURRENCY_CLASSIFIER, HEADER
 
 
 def current_course():

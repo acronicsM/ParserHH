@@ -1,11 +1,11 @@
 import time
+from datetime import datetime
 from ..common import get_json_data, delete_expired_vacancies
 from ..parsers.api_parser import parse_detail_data
 from ..parsers.currency_exchange_rate_parser import current_course
 from .. import db
 from ..models import Skills, Vacancy, Query
-from datetime import datetime
-from ..environment import TIMEOUT_DETAIL_LOADER, DELTA_DETAIL_LOADER, PACKAGE_DETAIL_LOADER
+from config import TIMEOUT_DETAIL_LOADER, DELTA_DETAIL_LOADER, PACKAGE_DETAIL_LOADER
 
 
 def load_page(query: str | Query, per_page: int = 100, page: int = 0, courses=None, ) -> tuple[int, int]:
