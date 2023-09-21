@@ -1,12 +1,12 @@
 import requests
-from config import CURRENCY_CLASSIFIER, HEADER
+from my_api import app
 
 
 def current_course():
     url = 'http://cbrates.rbc.ru/tsv/cb/'
     courses = dict()
-    for currency, code in CURRENCY_CLASSIFIER.items():
-        response = requests.get(url=f'{url}{code}.tsv', headers=HEADER)
+    for currency, code in app.config['CURRENCY_CLASSIFIER'].items():
+        response = requests.get(url=f'{url}{code}.tsv', headers=app.config['HEADER'])
 
         if response.status_code != 200:
             courses[currency] = 1

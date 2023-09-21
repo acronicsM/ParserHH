@@ -1,8 +1,6 @@
 from flask import request, jsonify
-from . import app
-from .common import *
-from .loaders.api_loader import update_vacancy
-from .models import Query
+from my_api.loaders.api_loader import update_vacancy
+from my_api.utils.common import *
 
 
 @app.route('/')
@@ -96,5 +94,5 @@ def query():
 
 
 @app.route('/get_images')
-def get_images():
+def update_static():
     return 'work get_images'

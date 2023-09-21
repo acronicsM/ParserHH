@@ -2,9 +2,8 @@ from datetime import datetime, timedelta
 from pathlib import Path
 import requests
 from sqlalchemy import func, INT, desc
-from config import BASE_URI, HEADER
-from .models import Vacancy, Skills, Query
-from . import db
+from my_api.models import Vacancy, Skills, Query
+from my_api import db, app
 
 
 def exists_and_makedir(path: str):
@@ -13,9 +12,11 @@ def exists_and_makedir(path: str):
 
 def get_json_data(params: dict = None, header: dict = None, uri: str = None):
     if not header:
-        header = HEADER
+        header = app.config['HEADER']
 
-    return requests.get(url=(BASE_URI + f'/{uri}/') if uri else BASE_URI, params=params, headers=header).json()
+    url = (app.config['BASE_URI'] + f'/{uri}/') if uri else app.config['BASE_URI']
+
+    return requests.get(url=url, params=params, headers=header).json()
 
 
 def get_all_vacancies(page=None, per_page=10):
