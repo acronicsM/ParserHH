@@ -1,11 +1,10 @@
 import time
 from datetime import datetime
-from ..common import get_json_data, delete_expired_vacancies
-from ..parsers.api_parser import parse_detail_data
-from ..parsers.currency_exchange_rate_parser import current_course
-from .. import db
-from ..models import Skills, Vacancy, Query
-from config import TIMEOUT_DETAIL_LOADER, DELTA_DETAIL_LOADER, PACKAGE_DETAIL_LOADER
+from my_api.utils.common import get_json_data, delete_expired_vacancies
+from my_api.parsers.api_parser import parse_detail_data
+from my_api.parsers.currency_exchange_rate_parser import current_course
+from my_api import db, app
+from my_api.models import Skills, Vacancy, Query
 
 
 def load_page(query: str | Query, per_page: int = 100, page: int = 0, courses=None, ) -> tuple[int, int]:
@@ -64,7 +63,7 @@ def pages_loader(query_vac: str, per_page: int = 100) -> tuple[int, int, int]:
 
 def update_detail() -> int:
     counter = 0
-    timeout = TIMEOUT_DETAIL_LOADER
+    timeout = app.config['TIMEOUT_DETAIL_LOADER']
 
     for vacancy in Vacancy.query.filter(Vacancy.need_update).all():
         counter += 1
@@ -76,9 +75,9 @@ def update_detail() -> int:
 
         update_detail_vacancy(vacancy, parse_detail_data(data_json))
 
-        if counter % PACKAGE_DETAIL_LOADER == 0:
+        if counter % app.config['PACKAGE_DETAIL_LOADER'] == 0:
             time.sleep(timeout)
-            timeout += DELTA_DETAIL_LOADER
+            timeout += app.config['DELTA_DETAIL_LOADER']
 
     return counter
 

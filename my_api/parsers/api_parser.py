@@ -1,6 +1,6 @@
 from bs4 import BeautifulSoup
 import re
-from config import REQUIRED_SKILLS
+from my_api import app
 
 
 def parser_description_to_key_skills(description: str):
@@ -8,6 +8,7 @@ def parser_description_to_key_skills(description: str):
 
     description_skills = set()
     basic_skills = set()
+    required_skills = app.config['REQUIRED_SKILLS']
 
     soup = BeautifulSoup(description, 'html.parser')
     for ul in soup.findAll('ul'):
@@ -21,7 +22,7 @@ def parser_description_to_key_skills(description: str):
             for match in re.finditer(pattern, child.text, re.MULTILINE):
                 skill = match.group()
                 description_skills.add(skill)
-                if any((name.lower() in i.lower()) or (i.lower() in name.lower()) for i in REQUIRED_SKILLS):
+                if any((name.lower() in i.lower()) or (i.lower() in name.lower()) for i in required_skills):
                     basic_skills.add(skill)
 
     return description_skills, basic_skills

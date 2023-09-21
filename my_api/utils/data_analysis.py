@@ -1,8 +1,9 @@
 from common import get_all_vacancies, Vacancy, exists_and_makedir
-from config import IMAGE_FOLDER, GLOSSARY
 import matplotlib.pyplot as plt
 import seaborn as sns
 import pandas as pd
+from my_api import app
+from my_api.models import Query
 
 
 def add_skills_to_dict(vacancy: Vacancy,
@@ -11,7 +12,6 @@ def add_skills_to_dict(vacancy: Vacancy,
                        attr_index: int,
                        with_zero_salary: bool = False
                        ):
-
     skill_str, salary_str = 'skills', 'salarys'
     for i in vacancy.__getattribute__(attr_name):
         if i not in skills_dict:
@@ -30,13 +30,13 @@ def add_skills_to_dict(vacancy: Vacancy,
 def get_dataframe_from_vacancy():
     skills = dict()
     for vacancy in get_all_vacancies():
-        for k, v in enumerate(GLOSSARY):
+        for k, v in enumerate(app.config['GLOSSARY']):
             add_skills_to_dict(vacancy, skills, v, k)
 
     skills_list = [(skill, *value['skills']) for skill, value in skills.items()]
     salarys_list = [(skill, v) for skill, value in skills.items() for v in value['salarys']]
 
-    df_skills = pd.DataFrame(skills_list, columns=['skill', *GLOSSARY])
+    df_skills = pd.DataFrame(skills_list, columns=['skill', *app.config['GLOSSARY']])
     df_salarys = pd.DataFrame(salarys_list, columns=['skill', 'salary'])
 
     return df_skills, df_salarys
@@ -46,11 +46,12 @@ def save_images_skills(df_skills, nlargest=20):
     plt.figure(figsize=(20, 15), dpi=200)
 
     images = []
+    image_folder = app.config['IMAGE_FOLDER']
 
-    exists_and_makedir(IMAGE_FOLDER)
+    exists_and_makedir(app.config['IMAGE_FOLDER'])
     nlargest = 20
-    for g in GLOSSARY:
-        filename = fr'{IMAGE_FOLDER}\{g}_{nlargest}.jpg'
+    for g in app.config['GLOSSARY']:
+        filename = fr'{image_folder}\{g}_{nlargest}.jpg'
         plt.xticks(rotation=45)
         sns.barplot(data=df_skills.nlargest(nlargest, g), x='skill', y=g)
         plt.savefig(filename)
@@ -64,9 +65,10 @@ def save_images_salary(df_skills, df_salarys, nlargest=20):
     df1 = df1.groupby('skill', as_index=False)['salary'].mean()
     df1 = df1.sort_values(by='salary', ascending=False)
 
-    exists_and_makedir(IMAGE_FOLDER)
+    exists_and_makedir(app.config['IMAGE_FOLDER'])
+    image_folder = app.config['IMAGE_FOLDER']
 
-    filename = fr'{IMAGE_FOLDER}\salary_{nlargest}.jpg'
+    filename = fr'{image_folder}\salary_{nlargest}.jpg'
 
     plt.figure(figsize=(20, 15), dpi=200)
     plt.xticks(rotation=45)
@@ -77,7 +79,6 @@ def save_images_salary(df_skills, df_salarys, nlargest=20):
 
 
 def save_images():
-
     images = {'skills': [], 'salarys': []}
 
     df_skills, df_salarys = get_dataframe_from_vacancy()
@@ -91,6 +92,10 @@ def save_images():
     return images
 
 
-if __name__ == '__main__':
+def update_static():
+    for query in Query.query.all():
+        pass
 
-    save_images()
+
+if __name__ == '__main__':
+    update_static()
