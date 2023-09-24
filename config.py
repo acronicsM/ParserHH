@@ -1,5 +1,5 @@
 from pathlib import Path
-from os import environ, path
+from os import environ
 from dotenv import load_dotenv
 
 basedir = Path(__file__).parents[0]
@@ -7,14 +7,13 @@ load_dotenv(basedir / '.env')
 
 
 class Config(object):
-    DEBUG = False
-    TESTING = False
 
-    SECRET_KEY = environ.get('SECRET_KEY')
+    ENV = environ.get('ENV', default='production')
+    DEBUG = environ.get('DEBUG', default=False) == 'True'
+    SECRET_KEY = environ.get('SECRET_KEY', default='dsfdsf4dffdsf4DFdf09034DSFf343edcfVbhkmnnppp')
+    SQLALCHEMY_DATABASE_URI = environ.get('SQLALCHEMY_DATABASE_URI', default='sqlite:///base1.db')
+
     STATIC_FOLDER = basedir / 'static'
-
-    SQLALCHEMY_DATABASE_URI = 'sqlite:///base1.db'
-    # SQLALCHEMY_DATABASE_URI = 'postgresql://postgres:adminadmin@localhost:5432/hh'
 
     HEADER = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) '
                             'Chrome/116.0.0.0 Safari/537.36 OPR/102.0.0.0 (Edition Yx 05)'}
