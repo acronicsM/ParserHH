@@ -6,4 +6,8 @@ if __name__ == '__main__':
 
     host = None if app.config['ENV'] == 'development' else '0.0.0.0'
     debug = app.config['DEBUG']
+
     app.run(debug=debug, host=host)
+
+
+# TODO: JWT SWAGGER logging
