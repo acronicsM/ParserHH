@@ -1,8 +1,7 @@
 from datetime import datetime, timedelta
 from pathlib import Path
 import requests
-from sqlalchemy import func, INT, desc
-from my_api.models import Vacancy, Skills, Query
+from my_api.models import Vacancy, Skills, SkillsVacancy, Query
 from my_api import db, app
 
 
@@ -19,15 +18,17 @@ def get_json_data(params: dict = None, header: dict = None, uri: str = None):
     return requests.get(url=url, params=params, headers=header).json()
 
 
-def get_all_vacancies(page=None, per_page=10):
-    query = Vacancy.query
+def get_all_vacancies(page=0, per_page=10, tag_id=None, query_id=None):
 
-    count = query.count()
+    if query_id:
+        query = db.session.query(Vacancy).join(Vacancy.querys).filter(Query.id == query_id)
+    else:
+        query = Vacancy.query
 
-    if page is not None:
-        query = query.offset(page * per_page).limit(per_page)
+    if tag_id:
+        query = query.join(SkillsVacancy).join(Skills, SkillsVacancy.skill_id == Skills.id).filter(Skills.id == tag_id)
 
-    return count, query.all()
+    return query.count(), query.offset(page * per_page).limit(per_page).all()
 
 
 def get_vacancy_by_id(vacancy_id):
@@ -35,26 +36,38 @@ def get_vacancy_by_id(vacancy_id):
 
 
 def get_vacancy_skills(vacancy_id):
-    return [skill.to_dict() for skill in db.session.get(Vacancy, vacancy_id).skills]
+    vacancy = db.session.get(Vacancy, vacancy_id)
+    if not vacancy:
+        return []
+    return [skill.to_dict() for skill in vacancy.skill_vacancies]
 
 
-def get_skill_vacancies(skill_name):
-    return [i.vacancy.to_dict() for i in Skills.query.filter(Skills.name == skill_name)]
+def get_skill_vacancies(skill_id):
+    skills_query = Skills.query
+
+    count = skills_query.count()
+
+    return [i.vacancy.to_dict() for i in Skills.query.get(skill_id).skill_vacancies]
 
 
-def get_all_skills(page=None, per_page=10):
-    skills_query = db.session.query(Skills.name,
-                                    func.sum(func.cast(Skills.key_skill, INT)),
-                                    func.sum(func.cast(Skills.description_skill, INT)),
-                                    func.sum(func.cast(Skills.basic_skill, INT)),
-                                    func.count(Skills.id).label('count_id')
-                                    ).group_by(Skills.name).order_by(desc('count_id'))
+def get_all_skills(page=0, per_page=10):
+    skills_query = Skills.query.join(Skills.skill_vacancies).group_by(Skills.id)
+    skills_query = skills_query.order_by(db.func.count(SkillsVacancy.skill_id).desc())
 
-    skills_query = skills_query.offset(page * per_page).limit(per_page).all()
+    count = skills_query.count()
 
-    skills = [{'skill': i[0], 'key': i[1], 'description': i[2], 'basic': i[3], 'vacancies': i[4]} for i in skills_query]
+    skills_page = []
+    for skill in skills_query.offset(page * per_page).limit(per_page).all():
+        skills_page.append({
+            'id': skill.id,
+            'name': skill.name,
+            'vacancies': len(skill.skill_vacancies),
+            'key': sum(i.key_skill for i in skill.skill_vacancies),
+            'description': sum(i.description_skill for i in skill.skill_vacancies),
+            'basic': sum(i.basic_skill for i in skill.skill_vacancies),
+        })
 
-    return skills
+    return {'found': count, 'result': skills_page}
 
 
 def delete_expired_vacancies() -> int:
@@ -74,7 +87,7 @@ def get_vacancy_query(query_id):
 
 
 def get_query():
-    return [{'id': i.id, 'name': i.name}for i in Query.query.all()]
+    return [{'id': i.id, 'name': i.name} for i in Query.query.all()]
 
 
 def post_query(name: str):
