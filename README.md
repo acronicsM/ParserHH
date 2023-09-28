@@ -21,7 +21,19 @@ API позволяет парсить HH.ru по списку запросов, 
 - [BeautifulSoup]
 
 ## Установка
-    Установка docker на debian: https://docs.docker.com/engine/install/debian/
-    Авторизация на docker hub: sudo docker login
-    Загрузка образа: sudo docker pull meacronics/my_api_hh:v21092023
-    Запуск образа: sudo docker run -p 5000:5000 --rm -d meacronics/my_api_hh:v21092023
+- Установка docker на debian: 
+
+        https://docs.docker.com/engine/install/debian/ 
+
+
+- Авторизация на docker hub:
+
+        sudo docker login
+
+- Загрузка образа:
+  
+      sudo docker pull meacronics/my_api_hh:v21092023
+
+- Запуск образа: 
+
+        sudo docker run -p 5000:5000 --rm -d meacronics/my_api_hh:v21092023

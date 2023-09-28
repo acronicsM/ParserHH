@@ -21,7 +21,8 @@ def get_update_vacancy():
 
 @app.route('/vacancies')
 def vacancies():
-    per_page, page = 10, 0
+    per_page, page, = 10, 0
+    tag_id = query = None
 
     if _per_page := request.args.get('per_page'):
         per_page = min(int(_per_page), per_page)
@@ -29,7 +30,13 @@ def vacancies():
     if _page := request.args.get('page'):
         page = int(_page)
 
-    count, result = get_all_vacancies(page=page, per_page=per_page)
+    if _tag_id := request.args.get('tag_id'):
+        tag_id = int(_tag_id)
+
+    if _query := request.args.get('query'):
+        query = int(_query)
+
+    count, result = get_all_vacancies(page=page, per_page=per_page, tag_id=tag_id, query_id=query)
 
     return jsonify({'found': count,
                     'result': [vacancy.to_dict() for vacancy in result]
@@ -46,18 +53,10 @@ def get_vacancy_tags(vacancy_id):
     return jsonify(get_vacancy_skills(vacancy_id))
 
 
-@app.route('/get_tag_vacancies')
-def get_tag_vacancies():
-    if tag_name := request.args.get('tag_name'):
-        return get_skill_vacancies(tag_name)
-
-    return 'not arg "tag_name"', 400
-
-
-@app.route('/tags',)
+@app.route('/tags')
 def tags():
 
-    per_page, page = 10, 0
+    per_page, page = 100, 0
 
     if _per_page := request.args.get('per_page'):
         per_page = min(int(_per_page), per_page)
@@ -66,6 +65,12 @@ def tags():
         page = int(_page)
 
     return jsonify(get_all_skills(per_page=per_page, page=page))
+
+
+@app.route('/tags/<int:tags_id>')
+def get_tag_vacancies(tags_id):
+
+    return get_skill_vacancies(skill_id=tags_id)
 
 
 @app.route('/query/<int:query_id>')

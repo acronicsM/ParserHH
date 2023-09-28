@@ -4,7 +4,7 @@ from my_api.utils.common import get_json_data, delete_expired_vacancies
 from my_api.parsers.api_parser import parse_detail_data
 from my_api.parsers.currency_exchange_rate_parser import current_course
 from my_api import db, app
-from my_api.models import Skills, Vacancy, Query
+from my_api.models import Skills, Vacancy, SkillsVacancy, Query
 
 
 def load_page(query: str | Query, per_page: int = 100, page: int = 0, courses=None, ) -> tuple[int, int]:
@@ -83,24 +83,29 @@ def update_detail() -> int:
 
 
 def update_detail_vacancy(vacancy: Vacancy, detail_data: dict):
-    def add_skill_to_dict(skills_dict, skills_json, name_attr):
-        for skill in skills_json:
-            if skill not in skills_dict:
-                skills_dict[skill] = Skills(name=skill)
+    def add_skill(skills_json, name_attr, vacancy: Vacancy):
+        for skill_name in skills_json:
+            skill = Skills.query.filter_by(name=skill_name).first()
+            if not skill:
+                skill = Skills(name=skill_name)
+                db.session.add(skill)
+                db.session.commit()
 
-            setattr(skills_dict[skill], name_attr, True)
+            skill_vacancy = SkillsVacancy.query.filter_by(skill_id=skill.id, vacancy_id=vacancy.id).first()
+            if not skill_vacancy:
+                skill_vacancy = SkillsVacancy(skill_id=skill.id, vacancy_id=vacancy.id)
+                db.session.add(skill_vacancy)
+                db.session.commit()
+
+            setattr(skill_vacancy, name_attr, True)
+
+    add_skill(skills_json=detail_data['key_skills'], name_attr='key_skill', vacancy=vacancy)
+    add_skill(skills_json=detail_data['description_skills'], name_attr='description_skill', vacancy=vacancy)
+    add_skill(skills_json=detail_data['basic_skills'], name_attr='basic_skill', vacancy=vacancy)
 
     vacancy.schedule = detail_data['schedule']
     vacancy.description = detail_data['description']
     vacancy.need_update = False
-
-    skills = dict()
-
-    add_skill_to_dict(skills_dict=skills, skills_json=detail_data['key_skills'], name_attr='key_skill')
-    add_skill_to_dict(skills_dict=skills, skills_json=detail_data['description_skills'], name_attr='description_skill')
-    add_skill_to_dict(skills_dict=skills, skills_json=detail_data['basic_skills'], name_attr='basic_skill')
-
-    vacancy.skills = list(skills.values())
 
     db.session.add(vacancy)
     # db.session.flush()
