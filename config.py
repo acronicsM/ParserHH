@@ -13,6 +13,8 @@ class Config(object):
     SECRET_KEY = environ.get('SECRET_KEY', default='dsfdsf4dffdsf4DFdf09034DSFf343edcfVbhkmnnppp')
     SQLALCHEMY_DATABASE_URI = environ.get('SQLALCHEMY_DATABASE_URI', default='sqlite:///base1.db')
 
+    SQLALCHEMY_RECORD_QUERIES = ENV == 'development'
+
     STATIC_FOLDER = basedir / 'static'
 
     HEADER = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) '
@@ -50,6 +52,9 @@ class Config(object):
     TIMEOUT_DETAIL_LOADER = 5
     DELTA_DETAIL_LOADER = 2
     PACKAGE_DETAIL_LOADER = 5
+
+    COUNT_TOP_VACANCIES = 4
+    COUNT_TOP_SKILLS = 12
 
 
 class ProductionConfig(Config):

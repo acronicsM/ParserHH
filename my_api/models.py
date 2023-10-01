@@ -116,3 +116,19 @@ class SkillsVacancy(db.Model):
             'description': self.description_skill,
             'basic': self.basic_skill,
         }
+
+
+class Statistics(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    value_int = db.Column(db.Integer)
+
+
+class TopVacancies(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+
+
+class TopSkills(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(50), nullable=True)
+    salary_min = db.Column(db.Float)
+    salary_max = db.Column(db.Float)
