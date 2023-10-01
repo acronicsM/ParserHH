@@ -1,8 +1,11 @@
 from datetime import datetime, timedelta
 from pathlib import Path
 import requests
-from my_api.models import Vacancy, Skills, SkillsVacancy, Query
+
+from my_api.models import Vacancy, Skills, Query, Statistics, TopVacancies, TopSkills
 from my_api import db, app
+
+from . import querys
 
 
 def exists_and_makedir(path: str):
@@ -19,14 +22,7 @@ def get_json_data(params: dict = None, header: dict = None, uri: str = None):
 
 
 def get_all_vacancies(page=0, per_page=10, tag_id=None, query_id=None):
-
-    if query_id:
-        query = db.session.query(Vacancy).join(Vacancy.querys).filter(Query.id == query_id)
-    else:
-        query = Vacancy.query
-
-    if tag_id:
-        query = query.join(SkillsVacancy).join(Skills, SkillsVacancy.skill_id == Skills.id).filter(Skills.id == tag_id)
+    query = querys.all_vacancies(tag_id=tag_id, query_id=query_id)
 
     return query.count(), query.offset(page * per_page).limit(per_page).all()
 
@@ -43,16 +39,11 @@ def get_vacancy_skills(vacancy_id):
 
 
 def get_skill_vacancies(skill_id):
-    skills_query = Skills.query
-
-    count = skills_query.count()
-
     return [i.vacancy.to_dict() for i in Skills.query.get(skill_id).skill_vacancies]
 
 
 def get_all_skills(page=0, per_page=10):
-    skills_query = Skills.query.join(Skills.skill_vacancies).group_by(Skills.id)
-    skills_query = skills_query.order_by(db.func.count(SkillsVacancy.skill_id).desc())
+    skills_query = querys.all_skills()
 
     count = skills_query.count()
 
@@ -87,7 +78,20 @@ def get_vacancy_query(query_id):
 
 
 def get_query():
-    return [{'id': i.id, 'name': i.name} for i in Query.query.all()]
+    max_salary = querys.maximum_salary_for_querys().all()
+    min_salary_from = querys.min_salary_for_querys(Vacancy.salary_from).all()
+    min_salary_to = querys.min_salary_for_querys(Vacancy.salary_to).all()
+
+    response = {i[3]: {'name': i[4], 'count': i[2], 'max': max(i[0] if i[0] else 0, i[1] if i[1] else 0)} for i in
+                max_salary}
+
+    for i in min_salary_from:
+        response[i[1]]['min'] = i[0] if i[0] else 0
+
+    for i in min_salary_to:
+        response[i[1]]['min'] = min(response[i[1]]['min'], (i[0] if i[0] else 0))
+
+    return response
 
 
 def post_query(name: str):
@@ -100,3 +104,29 @@ def delete_query(query_id):
     db.session.delete(db.session.get(Query, query_id))
     # db.session.flush()
     db.session.commit()
+
+
+def update_statistics():
+    Statistics.query.delete()
+    TopVacancies.query.delete()
+    TopSkills.query.delete()
+
+    db.session.add(Statistics(id=1, value_int=Vacancy.query.count()))
+    db.session.add(Statistics(id=2, value_int=Skills.query.count()))
+
+    for i in querys.top_vacancies(app.config['COUNT_TOP_VACANCIES']).all():
+        db.session.add(TopVacancies(id=i[0]))
+
+    for i in querys.top_skills(app.config['COUNT_TOP_SKILLS']).all():
+        db.session.add(TopSkills(id=i[4], name=i[3], salary_max=i[1], salary_min=i[0]))
+
+    db.session.commit()
+
+
+def index_data():
+    return {
+        'count_vacancies': Statistics.query.get(1).value_int,
+        'count_skills': Statistics.query.get(2).value_int,
+        'top_vacancies': [Vacancy.query.get(i.id).to_dict() for i in TopVacancies.query.all()],
+        'top_skills':  [{'min': i.salary_min, 'max': i.salary_max, 'name': i.name, 'id': i.id} for i in TopSkills.query.all()]
+    }

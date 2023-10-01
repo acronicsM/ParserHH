@@ -4,17 +4,17 @@ from my_api.utils.common import *
 
 
 @app.route('/')
-def home():
-    return 'welcome'
+def index():
+    return jsonify(index_data())
 
 
 @app.route('/update_vacancy')
 def get_update_vacancy():
-    if query := request.args.get('query'):
-        return jsonify(update_vacancy(query=query))
+    if search_query := request.args.get('query'):
+        return jsonify(update_vacancy(query=search_query))
     else:
         if all_query := Query.query.all():
-            return jsonify([update_vacancy(query=query) for query in all_query])
+            return jsonify([update_vacancy(query=search_query) for search_query in all_query])
         else:
             return 'no key "query"', 400
 
@@ -22,7 +22,7 @@ def get_update_vacancy():
 @app.route('/vacancies')
 def vacancies():
     per_page, page, = 10, 0
-    tag_id = query = None
+    tag_id = search_query = None
 
     if _per_page := request.args.get('per_page'):
         per_page = min(int(_per_page), per_page)
@@ -34,9 +34,9 @@ def vacancies():
         tag_id = int(_tag_id)
 
     if _query := request.args.get('query'):
-        query = int(_query)
+        search_query = int(_query)
 
-    count, result = get_all_vacancies(page=page, per_page=per_page, tag_id=tag_id, query_id=query)
+    count, result = get_all_vacancies(page=page, per_page=per_page, tag_id=tag_id, query_id=search_query)
 
     return jsonify({'found': count,
                     'result': [vacancy.to_dict() for vacancy in result]
@@ -55,7 +55,6 @@ def get_vacancy_tags(vacancy_id):
 
 @app.route('/tags')
 def tags():
-
     per_page, page = 100, 0
 
     if _per_page := request.args.get('per_page'):
@@ -69,7 +68,6 @@ def tags():
 
 @app.route('/tags/<int:tags_id>')
 def get_tag_vacancies(tags_id):
-
     return get_skill_vacancies(skill_id=tags_id)
 
 

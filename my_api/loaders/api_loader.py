@@ -1,6 +1,6 @@
 import time
 from datetime import datetime
-from my_api.utils.common import get_json_data, delete_expired_vacancies
+from my_api.utils.common import get_json_data, delete_expired_vacancies, update_statistics
 from my_api.parsers.api_parser import parse_detail_data
 from my_api.parsers.currency_exchange_rate_parser import current_course
 from my_api import db, app
@@ -83,7 +83,7 @@ def update_detail() -> int:
 
 
 def update_detail_vacancy(vacancy: Vacancy, detail_data: dict):
-    def add_skill(skills_json, name_attr, vacancy: Vacancy):
+    def add_skill(skills_json, name_attr, vac: Vacancy):
         for skill_name in skills_json:
             skill = Skills.query.filter_by(name=skill_name).first()
             if not skill:
@@ -91,17 +91,17 @@ def update_detail_vacancy(vacancy: Vacancy, detail_data: dict):
                 db.session.add(skill)
                 db.session.commit()
 
-            skill_vacancy = SkillsVacancy.query.filter_by(skill_id=skill.id, vacancy_id=vacancy.id).first()
+            skill_vacancy = SkillsVacancy.query.filter_by(skill_id=skill.id, vacancy_id=vac.id).first()
             if not skill_vacancy:
-                skill_vacancy = SkillsVacancy(skill_id=skill.id, vacancy_id=vacancy.id)
+                skill_vacancy = SkillsVacancy(skill_id=skill.id, vacancy_id=vac.id)
                 db.session.add(skill_vacancy)
                 db.session.commit()
 
             setattr(skill_vacancy, name_attr, True)
 
-    add_skill(skills_json=detail_data['key_skills'], name_attr='key_skill', vacancy=vacancy)
-    add_skill(skills_json=detail_data['description_skills'], name_attr='description_skill', vacancy=vacancy)
-    add_skill(skills_json=detail_data['basic_skills'], name_attr='basic_skill', vacancy=vacancy)
+    add_skill(skills_json=detail_data['key_skills'], name_attr='key_skill', vac=vacancy)
+    add_skill(skills_json=detail_data['description_skills'], name_attr='description_skill', vac=vacancy)
+    add_skill(skills_json=detail_data['basic_skills'], name_attr='basic_skill', vac=vacancy)
 
     vacancy.schedule = detail_data['schedule']
     vacancy.description = detail_data['description']
@@ -117,6 +117,8 @@ def update_vacancy(query: str | Query) -> dict:
     page, vacancies_processed, new_vacancies = pages_loader(query_vac=query)
     delete_vacancies = delete_expired_vacancies()
     updated_details = update_detail()
+
+    update_statistics()
 
     return {
         'total_pages': page - 1,
