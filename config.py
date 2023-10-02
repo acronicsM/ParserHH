@@ -8,6 +8,7 @@ load_dotenv(basedir / '.env')
 
 class Config(object):
 
+    # FLASK_APP = environ.get('FLASK_APP', default='app.py')
     ENV = environ.get('ENV', default='production')
     DEBUG = environ.get('DEBUG', default=False) == 'True'
     SECRET_KEY = environ.get('SECRET_KEY', default='dsfdsf4dffdsf4DFdf09034DSFf343edcfVbhkmnnppp')
@@ -55,6 +56,8 @@ class Config(object):
 
     COUNT_TOP_VACANCIES = 4
     COUNT_TOP_SKILLS = 12
+
+    AGGREGATORS = ['HH', 'HABR']
 
 
 class ProductionConfig(Config):
