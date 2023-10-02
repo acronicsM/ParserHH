@@ -7,9 +7,16 @@ vacancy_query = db.Table('vacancy_query',
                          )
 
 
+class Aggregator(db.Model):
+    id = db.Column(db.String(50), primary_key=True)
+    class_name = db.Column(db.String(50), nullable=True)
+    url = db.Column(db.String(50))
+    vacancies = db.relationship('Vacancy', backref=db.backref('aggregator', lazy=True))
+
+
 class Query(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(250), unique=True)
+    name = db.Column(db.String(100), unique=True)
 
     def __repr__(self):
         return f'query: {self.name} [{self.id}]'

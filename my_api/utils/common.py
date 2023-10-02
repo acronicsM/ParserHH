@@ -2,7 +2,7 @@ from datetime import datetime, timedelta
 from pathlib import Path
 import requests
 
-from my_api.models import Vacancy, Skills, Query, Statistics, TopVacancies, TopSkills
+from my_api.models import Vacancy, Skills, Query, Statistics, TopVacancies, TopSkills, Aggregator
 from my_api import db, app
 
 from . import querys
@@ -102,6 +102,22 @@ def post_query(name: str):
 
 def delete_query(query_id):
     db.session.delete(db.session.get(Query, query_id))
+    # db.session.flush()
+    db.session.commit()
+
+
+def get_aggregators():
+    return [{'id': i.id, 'class_name': i.class_name, 'url': i.url}for i in Aggregator.query.all()]
+
+
+def post_aggregator(name: str, class_name: str, url: str):
+    db.session.add(Aggregator(id=name, class_name='class_name', url=url))
+    # db.session.flush()
+    db.session.commit()
+
+
+def delete_aggregator(query_id):
+    db.session.delete(db.session.get(Aggregator, query_id))
     # db.session.flush()
     db.session.commit()
 

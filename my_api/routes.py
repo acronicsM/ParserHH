@@ -96,6 +96,28 @@ def query():
     return 'Method Not Allowed', 405
 
 
+@app.route('/agg', methods=['GET', 'POST', 'DELETE'])
+def aggregators():
+    if request.method == 'GET':
+        return jsonify(get_aggregators())
+    elif request.method == 'POST':
+        if query_name := (request.args.get('name')
+                          and (query_class := request.args.get('class'))
+                          and (query_url := request.args.get('url'))):
+            post_aggregator(name=query_name, class_name=query_class, url=query_url)
+            return 'done'
+
+        return 'required arguments are missing', 400
+    elif request.method == 'DELETE':
+        if query_id := request.args.get('name'):
+            delete_query(query_id)
+            return 'done'
+
+        return 'not arg "name"', 400
+
+    return 'Method Not Allowed', 405
+
+
 @app.route('/get_images')
 def update_static():
     return 'work get_images'

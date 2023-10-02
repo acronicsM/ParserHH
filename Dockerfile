@@ -7,7 +7,7 @@ RUN python -m pip install -r requirements.txt
 #COPY /api_hh/my_api /app
 #COPY .env /app
 #COPY config.py /app
-#COPY run.py /app
+#COPY app.py /app
 
 EXPOSE 5000
 
