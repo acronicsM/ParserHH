@@ -57,7 +57,7 @@ class Config(object):
     COUNT_TOP_VACANCIES = 4
     COUNT_TOP_SKILLS = 12
 
-    AGGREGATORS = ['HH', 'HABR']
+    AGGREGATORS = dict()
 
 
 class ProductionConfig(Config):
