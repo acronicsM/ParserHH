@@ -4,39 +4,55 @@ from datetime import datetime
 from bs4 import BeautifulSoup
 import re
 
-from my_api import db, app
-from my_api.utils.common import get_json_data, delete_expired_vacancies, update_statistics
-from my_api.parsers.currency_exchange_rate_parser import current_course
-from my_api.models import Skills, Vacancy, SkillsVacancy, Query
+from . import db, app
+from .utils.common import get_json_data
+from .utils.querys import flush
+from .models import Skills, Vacancy, SkillsVacancy, Query
+
+
+def hh_parser_raw_json(vacancy, raw_json, courses):
+    published_at = raw_json['published_at']
+    published_at = published_at[:published_at.find('+')]
+
+    vacancy.relevance_date = datetime.utcnow()
+    vacancy.need_update = True
+
+    vacancy.type = raw_json['type']['name']
+    vacancy.published_at = datetime.fromisoformat(published_at)
+    vacancy.requirement = raw_json['snippet']['requirement']
+    vacancy.responsibility = raw_json['snippet']['responsibility']
+    vacancy.experience = raw_json['experience']['name']
+    vacancy.employment = raw_json['employment']['name']
+
+    if raw_json['salary']:
+        vacancy.currency = raw_json['salary']['currency']
+        vacancy.salary_from = raw_json['salary']['from'] if raw_json['salary']['from'] else 0
+        vacancy.salary_to = raw_json['salary']['to'] if raw_json['salary']['to'] else 0
+    else:
+        vacancy.currency = 'RUB'
+        vacancy.salary_from = 0
+        vacancy.salary_to = 0
+
+    if courses:
+        course = courses[vacancy.currency]
+        if not course:
+            print(f'Не удалось конвертировать валюту {vacancy.currency}')
+        else:
+            vacancy.salary_from = vacancy.salary_from * course
+            vacancy.salary_to = vacancy.salary_to * course
+
+
+class Singleton:
+    def __new__(cls):
+        if not hasattr(cls, 'instance'):
+            cls.instance = super(Singleton, cls).__new__(cls)
+        return cls.instance
 
 
 class Parser(ABC):
     @abstractmethod
     def update_vacancy(self, query: str | Query):
         pass
-
-    @classmethod
-    def save_vacancy_from_db(cls, query: str | Query, data_json: dict, courses: dict | None = None) -> tuple[int, int]:
-        vacancies_processed = new_vacancies = 0
-
-        for v in data_json['items']:
-            vacancies_processed += 1
-            vacancy = Vacancy.query.get(vac_id := v['id'])
-            if vacancy:
-                vacancy.relevance_date = datetime.utcnow()
-            else:
-                new_vacancies += 1
-                vacancy = Vacancy(id=vac_id, name=v['name'])
-                vacancy.parser_raw_json(raw_json=v, courses=courses)
-
-                if isinstance(query, Query):
-                    vacancy.querys.append(query)
-
-            db.session.add(vacancy)
-            # db.session.flush()
-            db.session.commit()
-
-        return vacancies_processed, new_vacancies
 
     @classmethod
     def update_detail_vacancy(cls, vacancy: Vacancy, detail_data: dict):
@@ -46,55 +62,63 @@ class Parser(ABC):
                 if not skill:
                     skill = Skills(name=skill_name)
                     db.session.add(skill)
-                    db.session.commit()
+                    if not flush():
+                        return True
 
                 skill_vacancy = SkillsVacancy.query.filter_by(skill_id=skill.id, vacancy_id=vac.id).first()
                 if not skill_vacancy:
                     skill_vacancy = SkillsVacancy(skill_id=skill.id, vacancy_id=vac.id)
                     db.session.add(skill_vacancy)
-                    db.session.commit()
+                    if not flush():
+                        return True
 
                 setattr(skill_vacancy, name_attr, True)
 
-        add_skill(skills_json=detail_data['key_skills'], name_attr='key_skill', vac=vacancy)
-        add_skill(skills_json=detail_data['description_skills'], name_attr='description_skill', vac=vacancy)
-        add_skill(skills_json=detail_data['basic_skills'], name_attr='basic_skill', vac=vacancy)
+                return False
+
+        for i in ['key_skills', 'description_skills', 'basic_skills']:
+            error = add_skill(skills_json=detail_data[i], name_attr=i, vac=vacancy)
+
+            if error:
+                return True
 
         vacancy.schedule = detail_data['schedule']
         vacancy.description = detail_data['description']
         vacancy.need_update = False
 
         db.session.add(vacancy)
-        # db.session.flush()
-        db.session.commit()
+
+        return False
 
 
-class HH(Parser):
-    __instance = None
-
-    def __new__(cls, *args, **kwargs):
-        if cls.__instance is None:
-            cls.__instance = super().__new__(cls)
-
-        return cls.__instance
-
+class HH(Singleton, Parser):
     def update_vacancy(self, query: str | Query) -> dict:
-        page, vacancies_processed, new_vacancies = self.__pages_loader(query_vac=query)
-        delete_vacancies = delete_expired_vacancies()
-        updated_details = self.__update_detail()
 
-        update_statistics()
-
-        return {
-            'total_pages': page - 1,
-            'vacancies_processed': vacancies_processed,
-            'new_vacancies': new_vacancies,
-            'remotely_vacancies': delete_vacancies,
-            'updated_details': updated_details,
+        result = {
+            'total_pages': 0,
+            'vacancies_processed': 0,
+            'new_vacancies': 0,
+            'remotely_vacancies': 0,
+            'updated_details': 0,
+            'error': True
         }
 
-    @staticmethod
-    def __load_page(query: str | Query, per_page: int = 100, page: int = 0, courses=None, ) -> tuple[int, int]:
+        page, vacancies_processed, new_vacancies, error_pages = self.__pages_loader(query_vac=query)
+
+        if error_pages:
+            return result
+
+        updated_details, error_detail = self.__update_detail()
+
+        result['total_pages'] = page - 1
+        result['vacancies_processed'] = vacancies_processed
+        result['new_vacancies'] = new_vacancies
+        result['updated_details'] = updated_details
+        result['error'] = error_detail
+
+        return result
+
+    def __load_page(self, query: str | Query, per_page: int = 100, page: int = 0, courses=None, ) -> tuple[int, int]:
 
         query_str = query.name if isinstance(query, Query) else query
 
@@ -105,10 +129,31 @@ class HH(Parser):
             'page': page,
         }
 
-        return Parser.save_vacancy_from_db(data_json=get_json_data(params=params), courses=courses, query=query)
+        return self.save_vacancy_from_db(data_json=get_json_data(params=params), courses=courses, query=query)
 
-    def __pages_loader(self, query_vac: str, per_page: int = 100) -> tuple[int, int, int]:
+    @staticmethod
+    def save_vacancy_from_db(query: str | Query, data_json: dict, courses: dict | None = None) -> tuple[int, int]:
+        vacancies_processed = new_vacancies = 0
 
+        for v in data_json['items']:
+            vacancies_processed += 1
+            if vacancy := Vacancy.query.get(vac_id := v['id']):
+                vacancy.relevance_date = datetime.utcnow()
+            else:
+                new_vacancies += 1
+                vacancy = Vacancy(id=vac_id, name=v['name'])
+                hh_parser_raw_json(vacancy=vacancy, raw_json=v, courses=courses)
+
+                if isinstance(query, Query):
+                    vacancy.querys.append(query)
+
+            db.session.add(vacancy)
+
+        return vacancies_processed, new_vacancies
+
+    def __pages_loader(self, query_vac: str, per_page: int = 100) -> tuple[int, int, int, bool]:
+
+        from .utils.currency_exchange_rate_parser import current_course
         courses = current_course()
 
         page = vacancies_processed = new_vacancies = 0
@@ -121,11 +166,10 @@ class HH(Parser):
             if processed == 0:
                 break
 
-        return page, vacancies_processed, new_vacancies
+        return page, vacancies_processed, new_vacancies, not flush()
 
-    def __update_detail(self) -> int:
-        counter = 0
-        timeout = app.config['TIMEOUT_DETAIL_LOADER']
+    def __update_detail(self) -> tuple[int, bool]:
+        counter, error, timeout = 0, True, app.config['TIMEOUT_DETAIL_LOADER']
 
         for vacancy in Vacancy.query.filter(Vacancy.need_update).all():
             counter += 1
@@ -135,13 +179,16 @@ class HH(Parser):
             if data_json is None:
                 continue
 
-            super().update_detail_vacancy(vacancy, self.__parse_detail_data(data_json))
+            error = super().update_detail_vacancy(vacancy, self.__parse_detail_data(data_json))
+
+            if error:
+                return 0, error
 
             if counter % app.config['PACKAGE_DETAIL_LOADER'] == 0:
                 time.sleep(timeout)
                 timeout += app.config['DELTA_DETAIL_LOADER']
 
-        return counter
+        return counter, not flush()
 
     @staticmethod
     def parser_description_to_key_skills(description: str):
@@ -183,5 +230,6 @@ class HH(Parser):
         return result
 
 
-class Habr(ABC):
-    pass
+# class Habr(Singleton, ABC):
+#     def update_vacancy(self, query: str | Query):
+#         return None

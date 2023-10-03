@@ -7,11 +7,12 @@ vacancy_query = db.Table('vacancy_query',
                          )
 
 
-class Aggregator(db.Model):
+class Aggregators(db.Model):
     id = db.Column(db.String(50), primary_key=True)
-    class_name = db.Column(db.String(50), nullable=True)
-    url = db.Column(db.String(50))
-    vacancies = db.relationship('Vacancy', backref=db.backref('aggregator', lazy=True))
+    vacancies = db.relationship('Vacancy', backref='aggregator', lazy=True)
+
+    def __str__(self):
+        return self.id
 
 
 class Query(db.Model):
@@ -39,41 +40,12 @@ class Vacancy(db.Model):
     relevance_date = db.Column(db.DateTime, default=datetime.utcnow)
     currency = db.Column(db.String(3))
 
+    aggregator_id = db.Column(db.Integer, db.ForeignKey(Aggregators.id))
+
     querys = db.relationship('Query',
                              secondary=vacancy_query,
                              backref=db.backref('vacancies', lazy='dynamic')
                              )
-
-    def parser_raw_json(self, raw_json, courses):
-        published_at = raw_json['published_at']
-        published_at = published_at[:published_at.find('+')]
-
-        self.relevance_date = datetime.utcnow()
-        self.need_update = True
-
-        self.type = raw_json['type']['name']
-        self.published_at = datetime.fromisoformat(published_at)
-        self.requirement = raw_json['snippet']['requirement']
-        self.responsibility = raw_json['snippet']['responsibility']
-        self.experience = raw_json['experience']['name']
-        self.employment = raw_json['employment']['name']
-
-        if raw_json['salary']:
-            self.currency = raw_json['salary']['currency']
-            self.salary_from = raw_json['salary']['from'] if raw_json['salary']['from'] else 0
-            self.salary_to = raw_json['salary']['to'] if raw_json['salary']['to'] else 0
-        else:
-            self.currency = 'RUB'
-            self.salary_from = 0
-            self.salary_to = 0
-
-        if courses:
-            course = courses[self.currency]
-            if not course:
-                print(f'Не удалось конвертировать валюту {self.currency}')
-            else:
-                self.salary_from = self.salary_from * course
-                self.salary_to = self.salary_to * course
 
     def to_dict(self):
         return {

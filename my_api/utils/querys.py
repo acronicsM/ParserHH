@@ -3,6 +3,16 @@ from my_api import db
 from sqlalchemy import func, case, desc, select
 
 
+def flush():
+    try:
+        db.session.flush()
+    except:
+        db.session.rollback()
+        return False
+
+    return True
+
+
 def maximum_salary_for_querys():
     return db.session.query(
         db.func.max(Vacancy.salary_from).label('vacancy_salary_from'),
