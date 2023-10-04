@@ -139,7 +139,7 @@ def post_aggregator(name: str):
     else:
         return status_208(name)
 
-    return status_200()
+    return status_500()
 
 
 def delete_aggregator(name: str):

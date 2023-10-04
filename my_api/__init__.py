@@ -1,4 +1,4 @@
-from flask import Flask
+from flask import Flask, Blueprint
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
 from flask_restx import Api
@@ -11,15 +11,23 @@ app.config.from_object(Config)
 db = SQLAlchemy(app)
 migrate = Migrate(app, db)
 
-api = Api(version='1.0', title='АПИ проекта "Что хотят от джуна"')
-api.init_app(app)
+blueprint = Blueprint('api', __name__,)
+api = Api(blueprint,
+          title="Example API application",
+          description="An example API application using flask-restx",
+          version="1.0",
+          doc="/swagger/",
+          validate=True
+          )
+app.register_blueprint(blueprint)
 
 from . import routes, models
 from .utils.common import exists_and_makedir
 from .parsers_models import HH
+from .aggregators.routers import aggregators_ns
 
 exists_and_makedir(app.config['STATIC_FOLDER'])
 
 app.config['AGGREGATORS']['HH'] = HH
 
-api.add_namespace(routes.ns)
+api.add_namespace(aggregators_ns)
