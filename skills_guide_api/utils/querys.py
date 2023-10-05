@@ -1,5 +1,5 @@
-from my_api.models import Vacancy, Skills, SkillsVacancy, Query, vacancy_query
-from my_api import db
+from skills_guide_api.models import Vacancy, Skills, SkillsVacancy, Query, vacancy_query
+from skills_guide_api import db
 from sqlalchemy import func, case, desc, select
 
 
@@ -12,36 +12,6 @@ def flush():
 
     return True
 
-
-def maximum_salary_for_querys():
-    return db.session.query(
-        db.func.max(Vacancy.salary_from).label('vacancy_salary_from'),
-        db.func.max(Vacancy.salary_to).label('vacancy_salary_to'),
-        db.func.count(Vacancy.id).label('vacancy_count'),
-        Query.id.label('query_id'),
-        Query.name.label('query_name')
-    ).outerjoin(
-        vacancy_query, Query.id == vacancy_query.c.query_id
-    ).outerjoin(
-        Vacancy, Vacancy.id == vacancy_query.c.vacancy_id
-    ).group_by(Query.id)
-
-
-def min_salary_for_querys(column):
-    return db.session.query(
-        db.func.min(column).label('min_value'),
-        Query.id.label('query_id'),
-        Query.name.label('query_name')
-    ).outerjoin(
-        vacancy_query,
-        Query.id == vacancy_query.c.query_id,
-    ).outerjoin(
-        Vacancy,
-        db.and_(
-            Vacancy.id == vacancy_query.c.vacancy_id,
-            column > 0
-        ),
-    ).group_by(Query.id)
 
 
 def all_skills():

@@ -5,6 +5,7 @@ from flask_restx import Api
 from config import Config
 
 
+
 app = Flask(__name__)
 app.config.from_object(Config)
 
@@ -24,10 +25,14 @@ app.register_blueprint(blueprint)
 from . import routes, models
 from .utils.common import exists_and_makedir
 from .parsers_models import HH
-from .aggregators.routers import aggregators_ns
+from .api_swagger import namespaces
 
 exists_and_makedir(app.config['STATIC_FOLDER'])
 
 app.config['AGGREGATORS']['HH'] = HH
 
-api.add_namespace(aggregators_ns)
+for namespace in namespaces:
+    api.add_namespace(namespace)
+
+
+

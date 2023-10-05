@@ -1,4 +1,4 @@
-from my_api import app, db
+from skills_guide_api import app, db
 
 
 if __name__ == '__main__':
