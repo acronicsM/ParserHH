@@ -1,5 +1,5 @@
 from datetime import datetime
-from my_api import db
+from . import db
 
 vacancy_query = db.Table('vacancy_query',
                          db.Column('vacancy_id', db.Integer, db.ForeignKey('vacancy.id')),

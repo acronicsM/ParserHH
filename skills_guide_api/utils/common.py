@@ -1,12 +1,21 @@
 from datetime import datetime, timedelta
 from pathlib import Path
 import requests
+from flask import jsonify
 
-from my_api.models import Vacancy, Skills, Query, Statistics, TopVacancies, TopSkills, Aggregators
-from my_api import db, app
+from skills_guide_api.models import Vacancy, Skills, Query, Statistics, TopVacancies, TopSkills, Aggregators
+from skills_guide_api import db, app
 
 from . import querys
 from .http_status import status_500, status_208, status_200
+
+
+def _create_successful_response(status_code, message):
+    response = jsonify(status="success", message=message)
+    response.status_code = status_code
+    response.headers['Cache-Control'] = 'no-store'
+    response.headers['Pragma'] = 'no-cache'
+    return response
 
 
 def exists_and_makedir(path: str):
@@ -79,23 +88,6 @@ def get_vacancy_query(query_id):
     return [i.to_dict() for i in db.session.get(Query, query_id).vacancies.all()]
 
 
-def get_query():
-    max_salary = querys.maximum_salary_for_querys().all()
-    min_salary_from = querys.min_salary_for_querys(Vacancy.salary_from).all()
-    min_salary_to = querys.min_salary_for_querys(Vacancy.salary_to).all()
-
-    response = {i[3]: {'name': i[4], 'count': i[2], 'max': max(i[0] if i[0] else 0, i[1] if i[1] else 0)} for i in
-                max_salary}
-
-    for i in min_salary_from:
-        response[i[1]]['min'] = i[0] if i[0] else 0
-
-    for i in min_salary_to:
-        response[i[1]]['min'] = min(response[i[1]]['min'], (i[0] if i[0] else 0))
-
-    return response
-
-
 def post_query(name: str):
     if not Query.query.filter_by(name=name).first():
         db.session.add(Query(name=name))
@@ -139,7 +131,7 @@ def post_aggregator(name: str):
     else:
         return status_208(name)
 
-    return status_200()
+    return status_500()
 
 
 def delete_aggregator(name: str):
