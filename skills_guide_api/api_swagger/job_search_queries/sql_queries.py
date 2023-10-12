@@ -66,10 +66,10 @@ def new_query(name: str):
     return new.id
 
 
-def delete_query(id: int):
-    obj = Query.query.get(id)
+def delete_query(query_id: int):
+    obj = Query.query.get(query_id)
     if not obj:
-        abort(HTTPStatus.CONFLICT, message=f"{id} not found", status="fail")
+        abort(HTTPStatus.CONFLICT, message=f"{query_id} not found", status="fail")
 
     db.session.delete(obj)
 
@@ -78,3 +78,6 @@ def delete_query(id: int):
 
     db.session.commit()
 
+
+def vacancies_query(query_id: int):
+    return db.session.get(Query, query_id).vacancies

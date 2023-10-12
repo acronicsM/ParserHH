@@ -1,5 +1,5 @@
 import requests
-from my_api import app
+from skills_guide_api import app
 
 
 def current_course():

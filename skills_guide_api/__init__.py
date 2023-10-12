@@ -5,7 +5,6 @@ from flask_restx import Api
 from config import Config
 
 
-
 app = Flask(__name__)
 app.config.from_object(Config)
 
@@ -22,7 +21,7 @@ api = Api(blueprint,
           )
 app.register_blueprint(blueprint)
 
-from . import routes, models
+from . import models
 from .utils.common import exists_and_makedir
 from .parsers_models import HH
 from .api_swagger import namespaces
