@@ -2,13 +2,13 @@ from flask_restx import Resource
 from http import HTTPStatus
 
 from .api_functions import retrieve_aggregators_list, create_aggregator, remove_aggregator
-from .api_model import ns, request_list_model, get_model_item, post_model, delete_model
+from .api_model import ns, request_model_aggregator_list, request_model_aggregator_item, post_model, delete_model
 
 
 @ns.route("")
 @ns.response(int(HTTPStatus.INTERNAL_SERVER_ERROR), 'Internal Server Error')
 class Aggregators(Resource):
-    @ns.response(int(HTTPStatus.OK), 'Retrieved list.', request_list_model)
+    @ns.response(int(HTTPStatus.OK), 'Retrieved list.', request_model_aggregator_list)
     @ns.doc(description="Возвращает список всех агрегаторов")
     def get(self):
         """ Список агрегаторов вакансий """
@@ -16,7 +16,7 @@ class Aggregators(Resource):
 
     @ns.response(int(HTTPStatus.BAD_REQUEST), 'Validation error.')
     @ns.response(int(HTTPStatus.CONFLICT), 'Id already exists.')
-    @ns.response(int(HTTPStatus.CREATED), 'Added new.', get_model_item)
+    @ns.response(int(HTTPStatus.CREATED), 'Added new.', request_model_aggregator_item)
     @ns.expect(post_model)
     @ns.doc(description="Записывает новый агрегатор вакансий")
     def post(self):

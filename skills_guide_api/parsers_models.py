@@ -231,5 +231,5 @@ class HH(Singleton, Parser):
 
 
 # class Habr(Singleton, ABC):
-#     def update_vacancy(self, query: str | Query):
+#     def update_vacancies(self, query: str | Query):
 #         return None

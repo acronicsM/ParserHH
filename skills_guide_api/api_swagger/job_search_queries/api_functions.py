@@ -1,7 +1,7 @@
 from http import HTTPStatus
 
-from skills_guide_api.utils.common import _create_successful_response
-from .sql_queries import max_salary_query, min_salary_query, new_query, delete_query
+from skills_guide_api.utils.common import create_successful_response
+from .sql_queries import max_salary_query, min_salary_query, new_query, delete_query, vacancies_query
 
 
 def queries_dict(query_id=None):
@@ -36,7 +36,11 @@ def create_query(parameters: dict):
 def remove_query(parameters: dict):
     delete_query(parameters['id'])
 
-    return _create_successful_response(
+    return create_successful_response(
         status_code=HTTPStatus.OK,
         message='successfully removed',
     )
+
+
+def get_query(query_id):
+    return [i.to_dict() for i in vacancies_query(query_id).all()], HTTPStatus.OK

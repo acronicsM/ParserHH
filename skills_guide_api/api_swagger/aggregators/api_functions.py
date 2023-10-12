@@ -1,6 +1,6 @@
 from http import HTTPStatus
 
-from skills_guide_api.utils.common import _create_successful_response
+from skills_guide_api.utils.common import create_successful_response
 from .sql_queries import aggregators_query, new_aggregator, delete_aggregator
 
 
@@ -17,7 +17,7 @@ def create_aggregator(parameters: dict):
 def remove_aggregator(parameters: dict):
     delete_aggregator(parameters['id'])
 
-    return _create_successful_response(
+    return create_successful_response(
         status_code=HTTPStatus.OK,
         message='successfully removed',
     )

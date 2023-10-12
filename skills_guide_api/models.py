@@ -1,4 +1,7 @@
 from datetime import datetime
+
+from passlib.hash import pbkdf2_sha256 as sha256
+
 from . import db
 
 vacancy_query = db.Table('vacancy_query',
@@ -53,7 +56,7 @@ class Vacancy(db.Model):
             'name': self.name,
             'salary_from': self.salary_from,
             'salary_to': self.salary_to,
-            'published_at': self.published_at,
+            'published_at': self.published_at.strftime("%Y-%m-%dT%H:%M:%S"),
             'requirement': self.requirement,
 
         }
@@ -111,3 +114,20 @@ class TopSkills(db.Model):
     name = db.Column(db.String(50), nullable=True)
     salary_min = db.Column(db.Float)
     salary_max = db.Column(db.Float)
+
+
+class Users(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    username = db.Column(db.String(120), unique=True, nullable=False)
+    password = db.Column(db.String(120), nullable=False)
+
+    def to_dict(self):
+        return {'id': self.id, 'username': self.username}
+
+    @staticmethod
+    def generate_hash(password):
+        return sha256.hash(password)
+
+    @staticmethod
+    def verify_hash(password, hash):
+        return sha256.verify(password, hash)
