@@ -3,7 +3,7 @@ from flask_restx import abort
 
 from skills_guide_api.models import Aggregators
 from skills_guide_api import db
-from skills_guide_api.utils.querys import flush
+from ...utils.sql_queries import flush
 
 
 def aggregators_query(agg_id=None):

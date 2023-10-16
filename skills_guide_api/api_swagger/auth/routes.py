@@ -1,9 +1,12 @@
 from http import HTTPStatus
 
 from flask_restx import Resource
+from flask_jwt_extended import jwt_required, get_jwt_identity
 
-from .api_functions import user_registration, user_login, get_all_users, del_all_users
+from .api_functions import user_registration, user_login, get_all_users
 from .api_model import ns, post_model_user_auth
+from . import create_jwt_access_token
+from ...utils.common import only_admins
 
 
 @ns.response(int(HTTPStatus.INTERNAL_SERVER_ERROR), 'Internal Server Error')
@@ -34,30 +37,15 @@ class UserLogin(Resource):
 
 
 @ns.response(int(HTTPStatus.INTERNAL_SERVER_ERROR), 'Internal Server Error')
-@ns.route('/logout/access')
-class UserLogoutAccess(Resource):
-    @ns.response(int(HTTPStatus.OK), 'ОК.')
-    @ns.doc(description="Регистрация нового пользователя")
-    def post(self):
-        return {'message': 'User logout'}
-
-
-@ns.response(int(HTTPStatus.INTERNAL_SERVER_ERROR), 'Internal Server Error')
-@ns.route('/logout/refresh')
-class UserLogoutRefresh(Resource):
-    @ns.response(int(HTTPStatus.OK), 'ОК.')
-    @ns.doc(description="Регистрация нового пользователя")
-    def post(self):
-        return {'message': 'User logout'}
-
-
-@ns.response(int(HTTPStatus.INTERNAL_SERVER_ERROR), 'Internal Server Error')
 @ns.route('/token/refresh')
 class TokenRefresh(Resource):
+
     @ns.response(int(HTTPStatus.OK), 'ОК.')
     @ns.doc(description="Обновление токена")
+    @jwt_required(refresh=True)
     def post(self):
-        return {'message': 'Token refresh'}
+        """ Обновление access токена """
+        return {'access_token': create_jwt_access_token(get_jwt_identity())}
 
 
 @ns.response(int(HTTPStatus.INTERNAL_SERVER_ERROR), 'Internal Server Error')
@@ -65,21 +53,8 @@ class TokenRefresh(Resource):
 class AllUsers(Resource):
     @ns.response(int(HTTPStatus.OK), 'ОК.')
     @ns.doc(description="Список всех пользователей")
+    @jwt_required()
+    @only_admins
     def get(self):
+        """ Все пользователи"""
         return get_all_users()
-
-    @ns.response(int(HTTPStatus.OK), 'ОК.')
-    @ns.doc(description="Удаление всех пользователей")
-    def delete(self):
-        return del_all_users()
-
-
-@ns.response(int(HTTPStatus.INTERNAL_SERVER_ERROR), 'Internal Server Error')
-@ns.route('/secret')
-class SecretResource(Resource):
-    @ns.response(int(HTTPStatus.OK), 'ОК.')
-    @ns.doc(description="Возвращает новый секрет")
-    def get(self):
-        return {
-            'answer': 42
-        }

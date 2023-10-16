@@ -7,14 +7,13 @@ load_dotenv(basedir / '.env')
 
 
 class Config(object):
-
     # FLASK_APP = environ.get('FLASK_APP', default='app.py')
     ENV = environ.get('ENV', default='production')
     DEBUG = environ.get('DEBUG', default=False) == 'True'
     SECRET_KEY = environ.get('SECRET_KEY', default='dsfdsf4dffdsf4DFdf09034DSFf343edcfVbhkmnnppp')
     SQLALCHEMY_DATABASE_URI = environ.get('SQLALCHEMY_DATABASE_URI', default='sqlite:///base1.db')
 
-    SQLALCHEMY_RECORD_QUERIES = ENV == 'development'
+    # SQLALCHEMY_ECHO = ENV == 'development'
 
     STATIC_FOLDER = basedir / 'static'
 
@@ -58,6 +57,9 @@ class Config(object):
     COUNT_TOP_SKILLS = 12
 
     AGGREGATORS = dict()
+
+    KEY_ROLES = {environ.get('KEY_ROLE_ADMIN', default='8ba12641a0ba50c4b86006c6'): 'admin',
+                 'user': 'user'}
 
 
 class ProductionConfig(Config):

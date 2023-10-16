@@ -1,4 +1,5 @@
 from flask import Flask, Blueprint
+from flask_jwt_extended import JWTManager
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
 from flask_restx import Api
@@ -21,6 +22,8 @@ api = Api(blueprint,
           )
 app.register_blueprint(blueprint)
 
+jwt = JWTManager(app)
+
 from . import models
 from .utils.common import exists_and_makedir
 from .parsers_models import HH
@@ -32,6 +35,3 @@ app.config['AGGREGATORS']['HH'] = HH
 
 for namespace in namespaces:
     api.add_namespace(namespace)
-
-
-

@@ -2,7 +2,7 @@ from datetime import datetime, timedelta
 from sqlalchemy import func, case, desc
 
 from skills_guide_api import db, app
-from skills_guide_api.utils.querys import flush
+from ...utils.sql_queries import flush
 from skills_guide_api.models import (Query, Aggregators, Vacancy, Statistics,
                                      TopVacancies, TopSkills, Skills, SkillsVacancy)
 

@@ -7,7 +7,7 @@ from .api_model import ns, request_model_index
 
 @ns.route("")
 @ns.response(int(HTTPStatus.INTERNAL_SERVER_ERROR), 'Internal Server Error')
-class Tags(Resource):
+class IndexRouter(Resource):
     @ns.response(int(HTTPStatus.OK), 'Retrieved list.', request_model_index)
     @ns.doc(description="Обобщенные данные")
     def get(self):
