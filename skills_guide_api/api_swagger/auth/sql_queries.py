@@ -1,34 +1,27 @@
-from skills_guide_api import db
+from skills_guide_api import db, app
 from skills_guide_api.models import Users
-from skills_guide_api.utils.querys import flush
+from ...utils.sql_queries import flush
 
 
 def find_by_username_query(username):
     return Users.query.filter_by(username=username)
 
 
-def new_user(username, password):
-    user = Users(username=username, password=Users.generate_hash(password))
+def new_user(username, password, role_id=None):
+
+    role = role_id if role_id else app.config['KEY_ROLES']['user']
+    user = Users(username=username, role_id=role)
+    user.set_password(password)
+
     db.session.add(user)
 
     if not flush():
-        return False
+        return None
 
     db.session.commit()
 
-    return True
+    return user
 
 
 def all_users_query():
     return Users.query
-
-
-def delete_all_users_query():
-    num_rows_deleted = Users.query.delete()
-
-    if not flush():
-        return False, 0
-
-    db.session.commit()
-
-    return True, num_rows_deleted

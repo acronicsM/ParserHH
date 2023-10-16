@@ -1,8 +1,12 @@
 from pathlib import Path
 import requests
+from http import HTTPStatus
+
 from flask import jsonify
-from skills_guide_api import db, app
-from . import querys
+from flask_restx import abort
+from flask_jwt_extended import create_access_token, create_refresh_token, get_jwt_identity
+
+from skills_guide_api import app
 
 
 def create_successful_response(status_code, message):
@@ -17,17 +21,15 @@ def exists_and_makedir(path: str):
     Path(path).mkdir(parents=True, exist_ok=True)
 
 
-def get_json_data(params: dict = None, header: dict = None, uri: str = None):
-    if not header:
-        header = app.config['HEADER']
+def only_admins(func):
+    def wrappers(*args, **kwargs):
+        identity = get_jwt_identity()
+        key_roles = app.config['KEY_ROLES']
 
-    url = (app.config['BASE_URI'] + f'/{uri}/') if uri else app.config['BASE_URI']
+        if 'role' in identity and identity['role'] in key_roles and key_roles[identity['role']] == 'admin':
+            return func(*args, **kwargs)
+        else:
+            abort(HTTPStatus.UNAUTHORIZED, message="The method is not available", status="fail")
+        pass
 
-    response = requests.get(url=url, params=params, headers=header).json()
-    return response
-
-
-def get_all_vacancies(page=0, per_page=10, tag_id=None, query_id=None):
-    query = querys.all_vacancies(tag_id=tag_id, query_id=query_id)
-
-    return query.count(), query.offset(page * per_page).limit(per_page).all()
+    return wrappers

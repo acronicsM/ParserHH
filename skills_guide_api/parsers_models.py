@@ -3,11 +3,23 @@ import time
 from datetime import datetime
 from bs4 import BeautifulSoup
 import re
+import requests
 
 from . import db, app
-from .utils.common import get_json_data
-from .utils.querys import flush
+from .utils.sql_queries import flush
 from .models import Skills, Vacancy, SkillsVacancy, Query
+
+glossary = app.config['GLOSSARY']
+
+
+def get_json_data(params: dict = None, header: dict = None, uri: str = None):
+    if not header:
+        header = app.config['HEADER']
+
+    url = (app.config['BASE_URI'] + f'/{uri}/') if uri else app.config['BASE_URI']
+
+    response = requests.get(url=url, params=params, headers=header).json()
+    return response
 
 
 def hh_parser_raw_json(vacancy, raw_json, courses):
@@ -76,7 +88,7 @@ class Parser(ABC):
 
                 return False
 
-        for i in ['key_skills', 'description_skills', 'basic_skills']:
+        for i in glossary:
             error = add_skill(skills_json=detail_data[i], name_attr=i, vac=vacancy)
 
             if error:

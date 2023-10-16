@@ -15,3 +15,10 @@ post_model_user_auth.add_argument('password',
                                   location='args',
                                   help='Пароль пользователя',
                                   required=True)
+
+
+post_model_user_auth.add_argument('role_id',
+                                  type=str,
+                                  location='args',
+                                  help='Идентификатор роли пользователя. Если не указан то обычный пользователь',)
+

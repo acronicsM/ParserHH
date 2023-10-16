@@ -1,9 +1,10 @@
 from http import HTTPStatus
+
 from flask_restx import abort
 
 from skills_guide_api.models import Vacancy, Query, vacancy_query
 from skills_guide_api import db
-from skills_guide_api.utils.querys import flush
+from ...utils.sql_queries import flush
 
 
 def max_salary_query(id_filter=None):

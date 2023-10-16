@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from passlib.hash import pbkdf2_sha256 as sha256
+from werkzeug.security import generate_password_hash, check_password_hash
 
 from . import db
 
@@ -83,9 +83,9 @@ class SkillsVacancy(db.Model):
     vacancy_id = db.Column(db.Integer, db.ForeignKey(Vacancy.id))
     skill_id = db.Column(db.Integer, db.ForeignKey(Skills.id))
     id = db.Column(db.Integer, primary_key=True)
-    key_skill = db.Column(db.Boolean, nullable=True, default=False)
-    description_skill = db.Column(db.Boolean, nullable=True, default=False)
-    basic_skill = db.Column(db.Boolean, nullable=True, default=False)
+    key_skills = db.Column(db.Boolean, nullable=True, default=False)
+    description_skills = db.Column(db.Boolean, nullable=True, default=False)
+    basic_skills = db.Column(db.Boolean, nullable=True, default=False)
 
     skill = db.relationship('Skills', backref=db.backref('skill_vacancies', lazy=True))
     vacancy = db.relationship('Vacancy', backref=db.backref('skill_vacancies', lazy=True))
@@ -94,9 +94,9 @@ class SkillsVacancy(db.Model):
         return {
             'id': self.skill.id,
             'name': self.skill.name,
-            'key': self.key_skill,
-            'description': self.description_skill,
-            'basic': self.basic_skill,
+            'key': self.key_skills,
+            'description': self.description_skills,
+            'basic': self.basic_skills,
         }
 
 
@@ -120,14 +120,13 @@ class Users(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(120), unique=True, nullable=False)
     password = db.Column(db.String(120), nullable=False)
+    role_id = db.Column(db.String(50), nullable=False)
 
     def to_dict(self):
         return {'id': self.id, 'username': self.username}
 
-    @staticmethod
-    def generate_hash(password):
-        return sha256.hash(password)
+    def set_password(self, password):
+        self.password = generate_password_hash(password)
 
-    @staticmethod
-    def verify_hash(password, hash):
-        return sha256.verify(password, hash)
+    def check_password(self, password):
+        return check_password_hash(self.password, password)

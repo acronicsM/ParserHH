@@ -1,8 +1,10 @@
+from flask_jwt_extended import jwt_required
 from flask_restx import Resource
 from http import HTTPStatus
 
 from .api_functions import retrieve_queries_list, create_query, remove_query, get_query
 from .api_model import ns, request_model_queries_list, post_model_query, request_model_queries_item, delete_model_query
+from ...utils.common import only_admins
 
 
 @ns.route("")
@@ -18,6 +20,8 @@ class Queries(Resource):
     @ns.response(int(HTTPStatus.CONFLICT), 'Id already exists.')
     @ns.response(int(HTTPStatus.CREATED), 'Added new.', request_model_queries_item)
     @ns.expect(post_model_query)
+    @jwt_required()
+    @only_admins
     @ns.doc(description="Записывает новый поисковый запрос")
     def post(self):
         """ Запись нового поискового запроса """
@@ -27,6 +31,8 @@ class Queries(Resource):
     @ns.response(int(HTTPStatus.OK), 'Removed.')
     @ns.response(int(HTTPStatus.CONFLICT), 'Id not exists.')
     @ns.expect(delete_model_query)
+    @jwt_required()
+    @only_admins
     @ns.doc(description="Удаляет поисковый запрос")
     def delete(self):
         """ Удаление поискового запроса """

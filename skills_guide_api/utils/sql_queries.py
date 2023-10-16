@@ -1,4 +1,4 @@
-from skills_guide_api import db
+from .. import db
 
 
 def flush():
