@@ -65,3 +65,8 @@ get_model_list_vacancy.add_argument('query_id',
                                     type=int,
                                     location='args',
                                     help='ID поискового запроса.')
+
+get_model_list_vacancy.add_argument('new_vacancies',
+                                    type=bool,
+                                    location='args',
+                                    help='Признак новый вакансий.')
