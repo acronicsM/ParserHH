@@ -20,7 +20,7 @@ request_model_update_dict = ns.model('update_dict_model', {
 })
 
 get_update = reqparse.RequestParser(bundle_errors=True)
-get_update.add_argument('query',
+get_update.add_argument('query_id',
                         type=int,
                         location='args',
                         help='ID поискового запроса.')
