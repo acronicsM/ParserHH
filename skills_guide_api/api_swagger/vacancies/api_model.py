@@ -15,6 +15,7 @@ request_model_vacancy_detail = ns.model('vacancy_detail_model', {
     'employment': String(required=True, description='Занятость.'),
     'description': String(required=True, description='Описание вакансии.'),
     'schedule': String(required=True, description='График.'),
+    'url': String(required=True, description='URL адрес вакансии.'),
 })
 
 request_model_vacancy_item = ns.model('vacancy_item_model', {
@@ -23,7 +24,8 @@ request_model_vacancy_item = ns.model('vacancy_item_model', {
     'salary_from': Float(required=True, description='Зарплата от.'),
     'salary_to': Float(required=True, description='Зарплата до.'),
     'requirement': String(required=True, description='Краткое описание вакансии.'),
-    'published_at': DateTime(required=True, description='Дата публикации зарплаты.')
+    'published_at': DateTime(required=True, description='Дата публикации зарплаты.'),
+    'url': String(required=True, description='URL адрес вакансии.'),
 })
 
 request_model_vacancies_list = ns.model('vacancies_list_model', {

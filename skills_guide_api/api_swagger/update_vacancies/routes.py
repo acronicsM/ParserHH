@@ -12,8 +12,8 @@ from ...utils.common import only_admins
 @ns.response(int(HTTPStatus.INTERNAL_SERVER_ERROR), 'Internal Server Error', request_model_update_dict)
 class Update(Resource):
     @ns.response(int(HTTPStatus.OK), 'Vacancies updated.', request_model_update_dict)
-    @jwt_required()
-    @only_admins
+    # @jwt_required()
+    # @only_admins
     @ns.doc(description="Парсинг вакансий")
     def get(self):
         """ Запускает парсер обновления вакансий по списку поисковых запросов и агрегаторов вакансий """
