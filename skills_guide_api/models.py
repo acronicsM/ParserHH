@@ -6,7 +6,7 @@ from . import db
 
 vacancy_query = db.Table('vacancy_query',
                          db.Column('vacancy_id', db.Integer, db.ForeignKey('vacancy.id')),
-                         db.Column('query_id', db.Integer, db.ForeignKey('query.id'))
+                         db.Column('query_id', db.Integer, db.ForeignKey('query.id')),
                          )
 
 
@@ -42,6 +42,7 @@ class Vacancy(db.Model):
     need_update = db.Column(db.Boolean)
     relevance_date = db.Column(db.DateTime, default=datetime.utcnow)
     currency = db.Column(db.String(3))
+    url = db.Column(db.String)
 
     aggregator_id = db.Column(db.Integer, db.ForeignKey(Aggregators.id))
 
@@ -58,7 +59,7 @@ class Vacancy(db.Model):
             'salary_to': self.salary_to,
             'published_at': self.published_at.strftime("%Y-%m-%dT%H:%M:%S"),
             'requirement': self.requirement,
-
+            'url': self.url,
         }
 
     def to_dict_detail(self):

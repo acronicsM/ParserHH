@@ -153,7 +153,7 @@ class HH(Singleton, Parser):
                 vacancy.relevance_date = datetime.utcnow()
             else:
                 new_vacancies += 1
-                vacancy = Vacancy(id=vac_id, name=v['name'])
+                vacancy = Vacancy(id=vac_id, name=v['name'], url=f'https://hh.ru/vacancy/{vac_id}')
                 hh_parser_raw_json(vacancy=vacancy, raw_json=v, courses=courses)
 
                 if isinstance(query, Query):
