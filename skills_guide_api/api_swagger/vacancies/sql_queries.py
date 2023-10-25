@@ -22,3 +22,4 @@ def all_vacancies_query(page=0, per_page=10, tag_id=None, query_id=None, new_vac
 
 def get_vacancy_query(vacancy_id):
     return Vacancy.query.get(vacancy_id)
+
