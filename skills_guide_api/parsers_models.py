@@ -10,48 +10,20 @@ from .utils.sql_queries import flush
 from .models import Skills, Vacancy, SkillsVacancy, Query
 
 glossary = app.config['GLOSSARY']
+PACKAGE_DETAIL_LOADER = app.config['PACKAGE_DETAIL_LOADER']
+TIMEOUT_DETAIL_LOADER = app.config['TIMEOUT_DETAIL_LOADER']
+REQUIRED_SKILLS = app.config['REQUIRED_SKILLS']
+HEADER = app.config['HEADER']
 
 
-def get_json_data(params: dict = None, header: dict = None, uri: str = None):
-    if not header:
-        header = app.config['HEADER']
+def get_json_data(uri: str, params: dict = None, header: dict = None):
+    response = requests.get(
+        url=uri,
+        params=params,
+        headers=HEADER if not header else header,
+    ).json()
 
-    url = (app.config['BASE_URI'] + f'/{uri}/') if uri else app.config['BASE_URI']
-
-    response = requests.get(url=url, params=params, headers=header).json()
     return response
-
-
-def hh_parser_raw_json(vacancy, raw_json, courses):
-    published_at = raw_json['published_at']
-    published_at = published_at[:published_at.find('+')]
-
-    vacancy.relevance_date = datetime.utcnow()
-    vacancy.need_update = True
-
-    vacancy.type = raw_json['type']['name']
-    vacancy.published_at = datetime.fromisoformat(published_at)
-    vacancy.requirement = raw_json['snippet']['requirement']
-    vacancy.responsibility = raw_json['snippet']['responsibility']
-    vacancy.experience = raw_json['experience']['name']
-    vacancy.employment = raw_json['employment']['name']
-
-    if raw_json['salary']:
-        vacancy.currency = raw_json['salary']['currency']
-        vacancy.salary_from = raw_json['salary']['from'] if raw_json['salary']['from'] else 0
-        vacancy.salary_to = raw_json['salary']['to'] if raw_json['salary']['to'] else 0
-    else:
-        vacancy.currency = 'RUB'
-        vacancy.salary_from = 0
-        vacancy.salary_to = 0
-
-    if courses:
-        course = courses[vacancy.currency]
-        if not course:
-            print(f'Не удалось конвертировать валюту {vacancy.currency}')
-        else:
-            vacancy.salary_from = vacancy.salary_from * course
-            vacancy.salary_to = vacancy.salary_to * course
 
 
 class Singleton:
@@ -64,6 +36,10 @@ class Singleton:
 class Parser(ABC):
     @abstractmethod
     def update_vacancy(self, query: str | Query):
+        pass
+
+    @abstractmethod
+    def get_detail_vacancy(self, vacancy_id: int):
         pass
 
     @classmethod
@@ -104,6 +80,8 @@ class Parser(ABC):
 
 
 class HH(Singleton, Parser):
+    URI = 'https://api.hh.ru/vacancies'
+
     def update_vacancy(self, query: str | Query) -> dict:
 
         result = {
@@ -141,10 +119,43 @@ class HH(Singleton, Parser):
             'page': page,
         }
 
-        return self.save_vacancy_from_db(data_json=get_json_data(params=params), courses=courses, query=query)
+        return self.save_vacancy_from_db(
+            data_json=get_json_data(
+                uri=self.URI,
+                params=params,
+            ),
+            courses=courses,
+            query=query,
+        )
 
-    @staticmethod
-    def save_vacancy_from_db(query: str | Query, data_json: dict, courses: dict | None = None) -> tuple[int, int]:
+    def save_vacancy_from_db(self, query: str | Query, data_json: dict, courses: dict | None = None) -> tuple[int, int]:
+        def parser_raw_json(vac_model, raw_json, crs):
+            published_at = raw_json['published_at']
+            published_at = published_at[:published_at.find('+')]
+
+            vac_model.relevance_date = datetime.utcnow()
+            vac_model.need_update = True
+
+            vac_model.type = raw_json['type']['name']
+            vac_model.published_at = datetime.fromisoformat(published_at)
+            vac_model.requirement = raw_json['snippet']['requirement']
+            vac_model.responsibility = raw_json['snippet']['responsibility']
+            vac_model.experience = raw_json['experience']['name']
+            vac_model.employment = raw_json['employment']['name']
+
+            if raw_json['salary']:
+                vac_model.currency = raw_json['salary']['currency']
+                vac_model.salary_from = raw_json['salary']['from'] if raw_json['salary']['from'] else 0
+                vac_model.salary_to = raw_json['salary']['to'] if raw_json['salary']['to'] else 0
+            else:
+                vac_model.currency = 'RUB'
+                vac_model.salary_from = 0
+                vac_model.salary_to = 0
+
+            if crs and crs[vac_model.currency]:
+                vac_model.salary_from = vac_model.salary_from * crs[vac_model.currency]
+                vac_model.salary_to = vac_model.salary_to * crs[vac_model.currency]
+
         vacancies_processed = new_vacancies = 0
 
         for v in data_json['items']:
@@ -153,8 +164,8 @@ class HH(Singleton, Parser):
                 vacancy.relevance_date = datetime.utcnow()
             else:
                 new_vacancies += 1
-                vacancy = Vacancy(id=vac_id, name=v['name'], url=f'https://hh.ru/vacancy/{vac_id}')
-                hh_parser_raw_json(vacancy=vacancy, raw_json=v, courses=courses)
+                vacancy = Vacancy(id=vac_id, name=v['name'], url=f'{self.URI}/{vac_id}')
+                parser_raw_json(vac_model=vacancy, raw_json=v, crs=courses)
 
                 if isinstance(query, Query):
                     vacancy.querys.append(query)
@@ -180,25 +191,27 @@ class HH(Singleton, Parser):
 
         return page, vacancies_processed, new_vacancies, not flush()
 
+    def get_detail_vacancy(self, vacancy_id: int):
+        return self.__parse_detail_data(
+            data_json=get_json_data(
+                uri=f'{self.URI}/{vacancy_id}',
+            )
+        )
+
     def __update_detail(self) -> tuple[int, bool]:
-        counter, error, timeout = 0, True, app.config['TIMEOUT_DETAIL_LOADER']
+        counter, error, timeout = 0, True, TIMEOUT_DETAIL_LOADER
 
         for vacancy in Vacancy.query.filter(Vacancy.need_update).all():
             counter += 1
 
-            data_json = get_json_data(uri=str(vacancy.id))
+            detail_vacancy = self.get_detail_vacancy(vacancy.id)
 
-            if data_json is None:
-                continue
-
-            error = super().update_detail_vacancy(vacancy, self.__parse_detail_data(data_json))
-
-            if error:
+            if error := super().update_detail_vacancy(vacancy, detail_vacancy):
                 return 0, error
 
-            if counter % app.config['PACKAGE_DETAIL_LOADER'] == 0:
+            if counter % PACKAGE_DETAIL_LOADER == 0:
                 time.sleep(timeout)
-                timeout += app.config['DELTA_DETAIL_LOADER']
+                timeout += PACKAGE_DETAIL_LOADER
 
         return counter, not flush()
 
@@ -208,7 +221,7 @@ class HH(Singleton, Parser):
 
         description_skills = set()
         basic_skills = set()
-        required_skills = app.config['REQUIRED_SKILLS']
+        required_skills = REQUIRED_SKILLS
 
         soup = BeautifulSoup(description, 'html.parser')
         for ul in soup.findAll('ul'):
@@ -227,7 +240,11 @@ class HH(Singleton, Parser):
 
         return description_skills, basic_skills
 
-    def __parse_detail_data(self, data_json: dict):
+    def __parse_detail_data(self, data_json: dict | None):
+
+        if not data_json or 'errors' in data_json:
+            return None
+
         description_skills, basic_skills = self.parser_description_to_key_skills(data_json['description'])
 
         result = {
