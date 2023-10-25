@@ -45,8 +45,14 @@ request_skills_list_model = ns.model('skills_list', {
     'skills': Nested(request_model_vacancy_skill, description='Список навыков', as_list=True),
 })
 
+request_description_skills_list_model = ns.model('description_skills_list', {
+    'skill': String(required=True, description='Навык.'),
+})
+
 request_description_model = ns.model('description', {
     'description': String(required=True, description='Описание вакансии.'),
+    'key_skills': Nested(request_description_skills_list_model, description='Навыки вакансии', as_list=True),
+    'basic_skills': Nested(request_description_skills_list_model, description='Базовые навыки вакансии', as_list=True),
 })
 
 get_model_list_vacancy = reqparse.RequestParser(bundle_errors=True)
