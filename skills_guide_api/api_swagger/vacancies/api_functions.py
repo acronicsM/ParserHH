@@ -26,21 +26,20 @@ def get_vacancy_skills(vacancy_id):
     return {'skills': [skill.to_dict() for skill in vacancy.skill_vacancies]}
 
 
-def get_description(vacancy_id: int, aggregator_id: str):
-    aggregators = app.config['AGGREGATORS']
-    agg_id = aggregator_id.upper()
+def get_description(vacancy_id: int):
+    if vacancy := get_vacancy_query(vacancy_id):
+        return {
+            'description': vacancy.description,
+            'key_skills': [i.skill.name for i in vacancy.skill_vacancies if i.key_skills],
+            'basic_skills': [i.skill.name for i in vacancy.skill_vacancies if i.basic_skills],
+        }
 
-    if agg_id not in aggregators:
-        return f'aggregator {agg_id} not found', HTTPStatus.CONFLICT
+    for agg in app.config['AGGREGATORS'].values():
+        if detail_data := agg().get_detail_vacancy(vacancy_id):
+            return {
+                'description': detail_data['description'],
+                'key_skills': list(detail_data['key_skills']),
+                'basic_skills': list(detail_data['basic_skills']),
+            }
 
-    detail_data = aggregators[agg_id]().get_detail_vacancy(vacancy_id)
-    if detail_data is None:
-        return f'Could not get detailed job details', HTTPStatus.CONFLICT
-
-    response = {
-        'description': detail_data['description'],
-        'key_skills': list(detail_data['key_skills']),
-        'basic_skills': list(detail_data['basic_skills']),
-    }
-
-    return response, HTTPStatus.OK
+    return f'Could not get detailed job details', HTTPStatus.CONFLICT
