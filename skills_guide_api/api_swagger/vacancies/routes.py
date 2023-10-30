@@ -29,15 +29,15 @@ class VacanciesItem(Resource):
         return get_vacancy_skills(vacancy_id)
 
 
-@ns.route("/<int:vacancy_id>/description/<aggregator>")
+@ns.route("/description/<int:vacancy_id>")
 @ns.response(int(HTTPStatus.INTERNAL_SERVER_ERROR), 'Internal Server Error')
 class VacanciesItem(Resource):
     @ns.response(int(HTTPStatus.OK), 'Retrieved description.', request_description_model)
     @ns.response(int(HTTPStatus.CONFLICT), 'Could not get detailed job details.')
     @ns.doc(description="Парсит и возвращает описание вакансии из агрегатора")
-    def get(self, vacancy_id, aggregator):
+    def get(self, vacancy_id):
         """ Метод парсит произвольную вакансию агрегатора и возвращает её описание """
-        return get_description(vacancy_id, aggregator)
+        return get_description(vacancy_id)
 
 
 @ns.route("/<int:vacancy_id>")
