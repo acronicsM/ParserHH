@@ -9,9 +9,9 @@ def all_tags(page=0, per_page=10):
         'id': skill.id,
         'name': skill.name,
         'vacancies': len(skill.skill_vacancies),
-        'key': sum(i.key_skill for i in skill.skill_vacancies),
-        'description': sum(i.description_skill for i in skill.skill_vacancies),
-        'basic': sum(i.basic_skill for i in skill.skill_vacancies),
+        'key': sum(i.key_skills for i in skill.skill_vacancies),
+        'description': sum(i.description_skills for i in skill.skill_vacancies),
+        'basic': sum(i.basic_skills for i in skill.skill_vacancies),
     } for skill in skills_query.all()]
 
     return {'found': count, 'result': skills_page}, HTTPStatus.OK
