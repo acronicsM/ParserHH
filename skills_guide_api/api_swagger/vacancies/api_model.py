@@ -1,5 +1,8 @@
+from datetime import datetime
+
 from flask_restx import Namespace, reqparse
 from flask_restx.fields import Boolean, Integer, Float, String, DateTime, Nested
+
 from . import model_name, description
 
 ns = Namespace(name=model_name, validate=True, description=description)
@@ -82,3 +85,8 @@ get_model_list_vacancy.add_argument('new_vacancies',
                                     type=bool,
                                     location='args',
                                     help='Признак новый вакансий.')
+
+get_model_list_vacancy.add_argument('date_new',
+                                    type=lambda _date: datetime.fromisoformat(_date),
+                                    location='args',
+                                    help='Дата новых вакансий в iso формате')

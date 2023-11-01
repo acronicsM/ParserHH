@@ -3,12 +3,14 @@ from .sql_queries import all_vacancies_query, get_vacancy_query
 from ... import app
 
 
-def get_all_vacancies(page=0, per_page=10, tag_id=None, query_id=None, new_vacancies=False):
+def get_all_vacancies(page=0, per_page=10, tag_id=None, query_id=None, new_vacancies=False, date_new=None):
     count, result = all_vacancies_query(page=page,
                                         per_page=per_page,
                                         tag_id=tag_id,
                                         query_id=query_id,
-                                        new_vacancies=new_vacancies)
+                                        new_vacancies=new_vacancies,
+                                        date_new=date_new,
+                                        )
 
     result = [vacancy.to_dict() for vacancy in result.all()]
 
