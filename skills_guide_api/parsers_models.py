@@ -80,6 +80,7 @@ class Parser(ABC):
 
 
 class HH(Singleton, Parser):
+    URI_BASE = 'https://hh.ru/vacancy'
     URI = 'https://api.hh.ru/vacancies'
 
     def update_vacancy(self, query: str | Query) -> dict:
@@ -164,7 +165,7 @@ class HH(Singleton, Parser):
                 vacancy.relevance_date = datetime.utcnow()
             else:
                 new_vacancies += 1
-                vacancy = Vacancy(id=vac_id, name=v['name'], url=f'{self.URI}/{vac_id}')
+                vacancy = Vacancy(id=vac_id, name=v['name'], url=f'{self.URI_BASE}/{vac_id}')
                 parser_raw_json(vac_model=vacancy, raw_json=v, crs=courses)
 
                 if isinstance(query, Query):
