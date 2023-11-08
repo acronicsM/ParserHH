@@ -20,8 +20,8 @@ class Aggregators(Resource):
     @ns.response(int(HTTPStatus.CONFLICT), 'Id already exists.')
     @ns.response(int(HTTPStatus.CREATED), 'Added new.', request_model_aggregator_item)
     @ns.expect(post_model)
-    @jwt_required()
-    @only_admins
+    # @jwt_required()
+    # @only_admins
     @ns.doc(description="Записывает новый агрегатор вакансий")
     def post(self):
         """ Запись нового поискового запроса """
@@ -31,8 +31,8 @@ class Aggregators(Resource):
     @ns.response(int(HTTPStatus.OK), 'Removed.')
     @ns.response(int(HTTPStatus.CONFLICT), 'Id not exists.')
     @ns.expect(delete_model)
-    @jwt_required()
-    @only_admins
+    # @jwt_required()
+    # @only_admins
     @ns.doc(description="Удаляет агрегатор вакансий")
     def delete(self):
         """ Удаление поискового запроса """

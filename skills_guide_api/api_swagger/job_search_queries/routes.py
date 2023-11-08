@@ -20,8 +20,8 @@ class Queries(Resource):
     @ns.response(int(HTTPStatus.CONFLICT), 'Id already exists.')
     @ns.response(int(HTTPStatus.CREATED), 'Added new.', request_model_queries_item)
     @ns.expect(post_model_query)
-    @jwt_required()
-    @only_admins
+    # @jwt_required()
+    # @only_admins
     @ns.doc(description="Записывает новый поисковый запрос")
     def post(self):
         """ Запись нового поискового запроса """
@@ -31,8 +31,8 @@ class Queries(Resource):
     @ns.response(int(HTTPStatus.OK), 'Removed.')
     @ns.response(int(HTTPStatus.CONFLICT), 'Id not exists.')
     @ns.expect(delete_model_query)
-    @jwt_required()
-    @only_admins
+    # @jwt_required()
+    # @only_admins
     @ns.doc(description="Удаляет поисковый запрос")
     def delete(self):
         """ Удаление поискового запроса """
