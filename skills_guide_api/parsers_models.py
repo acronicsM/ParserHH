@@ -5,7 +5,7 @@ from bs4 import BeautifulSoup
 import re
 import requests
 
-from . import db, app
+from . import db, app, logging
 from .utils.sql_queries import flush
 from .models import Skills, Vacancy, SkillsVacancy, Query
 
@@ -22,6 +22,8 @@ def get_json_data(uri: str, params: dict = None, header: dict = None):
         params=params,
         headers=HEADER if not header else header,
     ).json()
+
+    logging.info(f'Response to {uri} with the {params} parameter ::: {response}')
 
     return response
 
@@ -85,6 +87,8 @@ class HH(Singleton, Parser):
 
     def update_vacancy(self, query: str | Query) -> dict:
 
+        logging.info('Start of the job parser')
+
         result = {
             'total_pages': 0,
             'vacancies_processed': 0,
@@ -107,6 +111,8 @@ class HH(Singleton, Parser):
         result['updated_details'] = updated_details
         result['error'] = error_detail
 
+        logging.info('Completing the Job Parser')
+
         return result
 
     def __load_page(self, query: str | Query, per_page: int = 100, page: int = 0, courses=None, ) -> tuple[int, int]:
@@ -119,6 +125,8 @@ class HH(Singleton, Parser):
             'search_field': 'name',
             'page': page,
         }
+
+        logging.info(f'Page loading {self.URI} with parameters {params}')
 
         return self.save_vacancy_from_db(
             data_json=get_json_data(
