@@ -23,4 +23,4 @@ def create_jwt_tokens(user_id: int, role_id: str):
 
 
 def create_jwt_access_token(jwt_data: dict):
-    return create_access_token(identity=jwt_data)
+    return create_access_token(identity=jwt_data, )

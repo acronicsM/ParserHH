@@ -22,7 +22,7 @@ api = Api(blueprint,
           )
 app.register_blueprint(blueprint)
 
-jwt = JWTManager(app)
+jwt = JWTManager(app, )
 
 from . import models
 from .utils.common import exists_and_makedir
