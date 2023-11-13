@@ -58,7 +58,7 @@ class Vacancy(db.Model):
             'salary_from': self.salary_from,
             'salary_to': self.salary_to,
             'published_at': self.published_at.strftime("%Y-%m-%dT%H:%M:%S"),
-            'requirement': self.requirement,
+            'requirement': f'{self.responsibility}\n{self.requirement}',
             'url': self.url,
         }
 

@@ -3,8 +3,15 @@ from flask_jwt_extended import JWTManager
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
 from flask_restx import Api
+
+import logging
+
 from config import Config
 
+
+_log_format = f"%(asctime)s - [%(levelname)s] - %(name)s - (%(filename)s).%(funcName)s(%(lineno)d) - %(message)s"
+
+logging.basicConfig(level=logging.INFO, filename="py_log.log", filemode='w',format=_log_format)
 
 app = Flask(__name__)
 app.config.from_object(Config)
@@ -22,7 +29,7 @@ api = Api(blueprint,
           )
 app.register_blueprint(blueprint)
 
-jwt = JWTManager(app)
+jwt = JWTManager(app, )
 
 from . import models
 from .utils.common import exists_and_makedir
