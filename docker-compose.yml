@@ -1,8 +1,67 @@
+version: '3.9'
+
 services:
-  api_hh:
-    build: .
+
+  db:
+    container_name: pg_db
+    image: postgres:15.0
     restart: always
     env_file:
       - .env
+    volumes:
+      - ./init-multi-postgres-databases.sh:/docker-entrypoint-initdb.d/init-multi-postgres-databases.sh
     ports:
-      - 5000:5000
+      - "5432:5432"
+
+  pgadmin:
+    container_name: pgadmin
+    image: dpage/pgadmin4
+    environment:
+      PGADMIN_DEFAULT_EMAIL: test@test.com
+      PGADMIN_DEFAULT_PASSWORD: test123!
+    ports:
+      - "16543:80"
+
+  gpt:
+    container_name: gpt
+    image: meacronics/skills_guide_gpt:latest
+    env_file:
+      - .env
+    restart: always
+    ports:
+      - "7000:7000"
+
+  parser:
+    container_name: parser
+    build:
+      context: .
+      dockerfile: ./Dockerfile
+    env_file:
+      - .env
+    restart: always
+    ports:
+      - "5000:5000"
+    depends_on:
+      - db
+
+  telegram:
+    container_name: telegram
+    image: meacronics/skills_guide_telegram:latest
+    env_file:
+      - .env
+    restart: always
+    ports:
+      - "6000:6000"
+    depends_on:
+      - parser
+
+  site:
+    container_name: site
+    image: meacronics/skills_guide_site:latest
+    env_file:
+      - .env
+    restart: always
+    ports:
+      - "8000:8000"
+    depends_on:
+      - parser
