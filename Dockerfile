@@ -1,16 +1,15 @@
-FROM python
-WORKDIR /api_hh
-COPY . /api_hh
-#COPY ../requirements.txt /my_api
-RUN python -m pip install -r requirements.txt
+FROM python:3.11
 
-#COPY /api_hh/my_api /app
-#COPY .env /app
-#COPY config.py /app
-#COPY app.py /app
+WORKDIR /api
+
+COPY ./skills_guide_api /api/skills_guide_api
+COPY ./app.py /api
+COPY ./config.py /api
+COPY ./requirements.txt /api
+COPY ./README.md /api
+
+RUN python -m pip install -r requirements.txt
 
 EXPOSE 5000
 
-LABEL name="My API"
-
-CMD ["python", "run.py"]
+CMD ["python", "app.py"]

@@ -5,15 +5,22 @@ from dotenv import load_dotenv
 basedir = Path(__file__).parents[0]
 load_dotenv(basedir / '.env')
 
+db_driver = environ.get('DB_DRIVER')
+puser, ppswrd = environ.get('POSTGRES_USER'), environ.get('POSTGRES_PASSWORD')
+phost, pport, pdb = environ.get('POSTGRES_HOST'), environ.get('POSTGRES_PORT'), environ.get('POSTGRES_DATABASE_PARSER')
+
 
 class Config(object):
-    # FLASK_APP = environ.get('FLASK_APP', default='app.py')
     ENV = environ.get('ENV', default='production')
     DEBUG = environ.get('DEBUG', default=False) == 'True'
     SECRET_KEY = environ.get('SECRET_KEY')
     JWT_SECRET_KEY = environ.get('JWT_SECRET_KEY')
 
-    SQLALCHEMY_DATABASE_URI = environ.get('SQLALCHEMY_DATABASE_URI', default='sqlite:///base1.db')
+    DATABASE_URI = 'sqlite:///base1.db'
+    if db_driver == 'postgresql':
+        DATABASE_URI = f'postgresql://{puser}:{ppswrd}@{phost}:{pport}/{pdb}'
+
+    SQLALCHEMY_DATABASE_URI = DATABASE_URI
 
     # SQLALCHEMY_ECHO = ENV == 'development'
 

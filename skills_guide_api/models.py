@@ -44,7 +44,7 @@ class Vacancy(db.Model):
     currency = db.Column(db.String(3))
     url = db.Column(db.String)
 
-    aggregator_id = db.Column(db.Integer, db.ForeignKey(Aggregators.id))
+    aggregator_id = db.Column(db.String(50), db.ForeignKey(Aggregators.id))
 
     querys = db.relationship('Query',
                              secondary=vacancy_query,
