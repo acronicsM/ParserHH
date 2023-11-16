@@ -7,7 +7,6 @@ if __name__ == '__main__':
         db.create_all()
 
     host = None if app.config['ENV'] == 'development' else '0.0.0.0'
-    print(host)
     debug = app.config['DEBUG']
 
     app.run(debug=debug, host=host)
