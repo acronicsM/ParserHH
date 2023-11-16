@@ -2,6 +2,15 @@
 
 Сервис проекта skills_guide по парсингу вакансий их хранению 
 
+![](https://img.shields.io/badge/Flask-2.3.3-00CED1)
+![](https://img.shields.io/badge/Flask--JWT--Extended-4.5.3-F0FFFF)
+![](https://img.shields.io/badge/SQLAlchemy-2.0.21-DC143C)
+![](https://img.shields.io/badge/NumPy-2.3.3-00008B)
+![](https://img.shields.io/badge/Beautiful_Soup-4.12.2-FF8C00)
+![](https://img.shields.io/badge/pandas-2.1.0-FFD700)
+![](https://img.shields.io/badge/Matplotlib-3.8.0-F08080)
+
+
 ## 🛠️ Подготовка в запуску
 
 1. [Download and install Python](https://www.python.org/downloads/) (Version 3.10+ is recommended).
