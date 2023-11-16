@@ -11,7 +11,8 @@ from config import Config
 
 _log_format = f"%(asctime)s - [%(levelname)s] - %(name)s - (%(filename)s).%(funcName)s(%(lineno)d) - %(message)s"
 
-logging.basicConfig(level=logging.INFO, filename="py_log.log", filemode='w',format=_log_format)
+# logging.basicConfig(level=logging.INFO, filename="py_log.log", filemode='w',format=_log_format)
+logging.basicConfig(level=logging.INFO, format=_log_format)
 
 app = Flask(__name__)
 app.config.from_object(Config)
