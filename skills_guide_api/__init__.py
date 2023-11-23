@@ -8,11 +8,10 @@ import logging
 
 from config import Config
 
-
 _log_format = f"%(asctime)s - [%(levelname)s] - %(name)s - (%(filename)s).%(funcName)s(%(lineno)d) - %(message)s"
 
 # logging.basicConfig(level=logging.INFO, filename="py_log.log", filemode='w',format=_log_format)
-logging.basicConfig(level=logging.INFO, format=_log_format)
+# logging.basicConfig(level=logging.INFO, format=_log_format)
 
 app = Flask(__name__)
 app.config.from_object(Config)
@@ -43,3 +42,10 @@ app.config['AGGREGATORS']['HH'] = HH
 
 for namespace in namespaces:
     api.add_namespace(namespace)
+
+
+@app.cli.command('create_db')
+def create_db():
+    db.drop_all()
+    db.create_all()
+    db.session.commit()
